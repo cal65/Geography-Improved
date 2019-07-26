@@ -1,0 +1,190 @@
+City Name,Country,Rank,Continent
+London,UK,Alpha ++,Europe
+New York,USA,Alpha ++,North America
+Hong Kong,China,Alpha +,Asia
+Paris,France,Alpha +,Europe
+Singapore,Singapore,Alpha +,Asia
+Tokyo,Japan,Alpha +,Asia
+Shanghai,China,Alpha +,Asia
+Dubai,UAE,Alpha +,Asia
+Sydney,Australia,Alpha +,Australia
+Beijing,China,Alpha +,Asia
+Milan,Italy,Alpha,Europe
+Toronto,Canada,Alpha,North America
+Sao Paulo,Brazil,Alpha,South America
+Madrid,Spain,Alpha,Europe
+Chicago,USA,Alpha,North America
+Mumbai,India,Alpha,Asia
+Los Angeles,USA,Alpha,North America
+Moscow,Russia,Alpha,Europe
+Frankfurt,Germany,Alpha,Europe
+Mexico City,Mexico,Alpha,North America
+Amsterdam,Netherlands,Alpha,Europe
+Kuala Lumpur,Malaysia,Alpha,Asia
+Brussels,Belgium,Alpha,Europe
+Guangzhou,China,Alpha -,Asia
+Miami,USA,Alpha -,North America
+Seoul,South Korea,Alpha,Asia
+Melbourne,Australia,Alpha,Australia
+Dublin,Ireland,Alpha -,Europe
+Jakarta,Indonesia,Alpha -,Asia
+Buenos Aires,Argentina,Alpha -,South America
+Zurich,Switzerland,Alpha -,Europe
+New Delhi,India,Alpha -,Asia
+Munich,Germany,Alpha -,Europe
+Boston,USA,Alpha -,North America
+Warsaw,Poland,Alpha -,Europe
+Vienna,Austria,Alpha -,Europe
+Atlanta,USA,Alpha -,North America
+Barcelona,Spain,Alpha -,Europe
+Bangkok,Thailand,Alpha -,Asia
+Istanbul,Turkey,Alpha -,Asia
+Taipei,Taiwan,Alpha -,Asia
+Johannesberg,South Africa,Alpha -,Africa
+"Washington, D.C.",USA,Alpha -,North America
+San Francisco,USA,Alpha -,North America
+Stockholm,Sweden,Alpha -,Europe
+Prague,Czech Republic,Beta +,Europe
+Dusseldorf,Germany,Beta +,Europe
+Dallas,USA,Beta +,North America
+Montreal,Canada,Beta +,North America
+Rome,Italy,Beta +,Europe
+Hamburg,Germany,Beta +,Europe
+Manila,Philippines,Beta +,Asia
+Houston,USA,Beta +,North America
+Berlin,Germany,Beta +,Europe
+Athens,Greece,Beta +,Europe
+Tel Aviv,Israel,Beta +,Asia
+Bangalore,India,Beta +,Asia
+Copenhagen,Denmark,Beta +,Europe
+Cairo,Egypt,Beta +,Africa
+Budapest,Hungary,Beta +,Europe
+Bucharest,Romania,Beta +,Europe
+Lima,Peru,Beta +,South America
+Cape Town,South Africa,Beta +,Africa
+Kiev,Ukraine,Beta +,Europe
+Luxembourg,Luxembourg,Beta +,Europe
+Santiago,Chile,Beta +,South America
+Lisbon,Portugal,Beta +,Europe
+Philadelphia,USA,Beta +,North America
+Beirut,Lebanon,Beta +,Asia
+Chengdu,China,Beta +,Asia
+Caracas,Venezuela,Beta,South America
+Bogota,Colombia,Beta,South America
+Ho Chi Minh City,Vietnam,Beta,Asia
+Auckland,New Zealand,Beta,Australia
+Oslo,Norway,Beta,Europe
+Chennai,India,Beta,Asia
+Manchester,UK,Beta,Europe
+Karachi,Pakistan,Beta,Asia
+Riyadh,Saudi Arabia,Beta,Asia
+Montevideo,Uruguay,Beta,South America
+Vancouver,Canada,Beta,North America
+Brisbane,Australia,Beta,Australia
+Helsinki,Finland,Beta,Europe
+Doha,Qatar,Beta,Asia
+Casablanca,Morocco,Beta,Africa
+Stuttgart,Germany,Beta,Europe
+Rio de Janeiro,Brazil,Beta,South America
+Geneva,Switzerland,Beta,Europe
+Wuhan,China,Beta,Asia
+Abu Dhabi,UAE,Beta -,Asia
+Nicosia,Cyprus,Beta -,Europe
+Lyon,France,Beta -,Europe
+Birmingham (UK),UK,Beta -,Europe
+San Jose (CR),Costa Rica,Beta -,North America
+Minneapolis,USA,Beta -,North America
+Tunis,Tunisia,Beta -,Africa
+Nairobi,Kenya,Beta -,Africa
+Calcutta,India,Beta -,Asia
+Detroit,USA,Beta -,North America
+Hanoi,Vietnam,Beta -,Asia
+Denver,USA,Beta -,North America
+Monterrey,Mexico,Beta -,North America
+Bratislava,Slovakia,Beta -,Europe
+Riga,Latvia,Beta -,Europe
+Seattle,USA,Beta -,North America
+Port Louis,Mauritius,Beta -,Africa
+Manama,Bahrain,Beta -,Asia
+Sofia,Bulgaria,Beta -,Europe
+Amman,Jordan,Beta -,Asia
+Antwerp,Belgium,Beta -,Europe
+Panama City,Panama,Beta -,North America
+San Diego,United States,Beta -,North America
+Quito,Ecaudor,Beta -,South America
+Rotterdam,Netherlands,Beta -,Europe
+Belgrade,Serbia,Beta -,Europe
+Almaty,Kazakhstan,Beta -,Asia
+Lagos,Nigeria,Beta -,Africa
+Perth,Australia,Beta -,Australia
+Shenzhen,China,Beta -,Asia
+Hyderabad,India,Beta -,Asia
+Kuwait City,Kuwait,Beta -,Asia
+Edinburgh,UK,Beta -,Europe
+Cleveland,USA,Beta -,North America
+Calgary,Canada,Beta -,North America
+Guatemala City,Guatemala,Beta -,North America
+Bristol,UK,Gamma +,Europe
+St. Petersburg,Russia,Gamma +,Europe
+Charlotte,USA,Gamma +,North America
+Lahore,,Gamma +,Asia
+Baltimore,USA,Gamma +,North America
+Jeddah,Saudi Arabia,Gamma +,Asia
+Zagreb,Croatia,Gamma +,Europe
+Adelaide,Australia,Gamma +,Australia
+Durban,,Gamma +,Africa
+Santo Domingo,Dominican Republic,Gamma +,North America
+San Salvador,,Gamma +,North America
+St. Louis,,Gamma +,North America
+Islamabad,,Gamma +,Asia
+Guayaquil,,Gamma +,South America
+Cologne,,Gamma +,Europe
+Phoenix,,Gamma +,North America
+Georgetown (CI),,Gamma +,North America
+Osaka,,Gamma +,Asia
+Tampa,,Gamma +,North America
+Valencia (SP),,Gamma,Europe
+Glasgow,,Gamma,Europe
+San Jose (US),,Gamma,North America
+San Juan,,Gamma,North America
+Marseille,,Gamma,Europe
+Cincinnati,,Gamma,North America
+Guadalajara,,Gamma,North America
+Leeds,,Gamma,Europe
+Baku,,Gamma,Asia
+Tallinn,,Gamma,Europe
+Vilnius,,Gamma,Europe
+Colombo,,Gamma,Asia
+Raleigh,,Gamma,North America
+Ankara,Turkey,Gamma,Asia
+Belfast,,Gamma,Europe
+Milwaukee,,Gamma,North America
+Muscat,,Gamma,Asia
+Ljubljana,,Gamma,Europe
+Nantes,,Gamma -,Europe
+Tianjin,China,Gamma -,Asia
+Accra,,Gamma -,Africa
+Algiers,,Gamma -,Africa
+Gothenburg,,Gamma -,Europe
+Porto,,Gamma -,Europe
+Columbus,,Gamma -,North America
+ Utrecht,,Gamma -,Europe
+Orlando,,Gamma -,North America
+ Ahmedabad,,Gamma -,Asia
+ Asuncion,,Gamma -,South America
+ Kansas City,,Gamma -,North America
+ Seville,,Gamma -,Europe
+ Turin,,Gamma -,Europe
+ Dar Es Salaam,,Gamma -,Africa
+Portland,,Gamma -,North America
+Krakow,,Gamma -,Europe
+ Managua,,Gamma -,North America
+ Pune,,Gamma -,Asia
+ Leipzig,,Gamma -,Europe
+ Malmo,,Gamma -,Europe
+La Paz,,Gamma -,South America
+Phnom Penh,Cambodia,Gamma -,Asia
+Penang,Malaysia,Gamma -,Asia
+Yangon,Myanmar,Gamma -,Asia
+Medellin,Colombia,Gamma -,South America
+Changsha,China,Gamma -,Asia
