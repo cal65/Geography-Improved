@@ -11,7 +11,7 @@ setwd('~/Documents/CAL/Real_Life/Geography-Improved/')
 options(stringsAsFactors = F)
 if(!requireNamespace("devtools")) install.packages("devtools")
 devtools::install_github("dkahle/ggmap", ref = "tidyup")
-register_google(key = "AIzaSyBu8Gg2sOosNIgMyB2htj9-JRStddtNfYU")  
+register_google(key = Sys.getenv(x='GOOGLE_API'))  
 
 # which google sheets do you have access to?
 # may ask you to authenticate in a browser!
