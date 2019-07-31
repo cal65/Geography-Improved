@@ -110,7 +110,7 @@ Sofia,Bulgaria,Beta -,Europe
 Amman,Jordan,Beta -,Asia
 Antwerp,Belgium,Beta -,Europe
 Panama City,Panama,Beta -,North America
-San Diego,United States,Beta -,North America
+San Diego,USA,Beta -,North America
 Quito,Ecaudor,Beta -,South America
 Rotterdam,Netherlands,Beta -,Europe
 Belgrade,Serbia,Beta -,Europe
@@ -127,7 +127,7 @@ Guatemala City,Guatemala,Beta -,North America
 Bristol,UK,Gamma +,Europe
 St. Petersburg,Russia,Gamma +,Europe
 Charlotte,USA,Gamma +,North America
-Lahore,,Gamma +,Asia
+Lahore,Pakistan,Gamma +,Asia
 Baltimore,USA,Gamma +,North America
 Jeddah,Saudi Arabia,Gamma +,Asia
 Zagreb,Croatia,Gamma +,Europe
@@ -141,11 +141,11 @@ Guayaquil,,Gamma +,South America
 Cologne,,Gamma +,Europe
 Phoenix,,Gamma +,North America
 Georgetown (CI),,Gamma +,North America
-Osaka,,Gamma +,Asia
-Tampa,,Gamma +,North America
-Valencia (SP),,Gamma,Europe
+Osaka,Jordan,Gamma +,Asia
+Tampa,USA,Gamma +,North America
+Valencia,Spain,Gamma,Europe
 Glasgow,,Gamma,Europe
-San Jose (US),,Gamma,North America
+San Jose,USA,Gamma,North America
 San Juan,,Gamma,North America
 Marseille,,Gamma,Europe
 Cincinnati,,Gamma,North America
@@ -154,13 +154,16 @@ Leeds,,Gamma,Europe
 Baku,,Gamma,Asia
 Tallinn,,Gamma,Europe
 Vilnius,,Gamma,Europe
-Colombo,,Gamma,Asia
-Raleigh,,Gamma,North America
+Colombo,Sri Lanka,Gamma,Asia
+Raleigh,USA,Gamma,North America
 Ankara,Turkey,Gamma,Asia
 Belfast,,Gamma,Europe
 Milwaukee,,Gamma,North America
 Muscat,,Gamma,Asia
+Bilbao,Spain,Gamma,Europe
+Taiyuan,China,Gamma,Asia
 Ljubljana,,Gamma,Europe
+Kunming,China,Gamma,Asia
 Nantes,,Gamma -,Europe
 Tianjin,China,Gamma -,Asia
 Accra,,Gamma -,Africa
@@ -168,23 +171,28 @@ Algiers,,Gamma -,Africa
 Gothenburg,,Gamma -,Europe
 Porto,,Gamma -,Europe
 Columbus,,Gamma -,North America
- Utrecht,,Gamma -,Europe
+Utrecht,,Gamma -,Europe
 Orlando,,Gamma -,North America
- Ahmedabad,,Gamma -,Asia
- Asuncion,,Gamma -,South America
- Kansas City,,Gamma -,North America
- Seville,,Gamma -,Europe
- Turin,,Gamma -,Europe
- Dar Es Salaam,,Gamma -,Africa
+Ahmedabad,,Gamma -,Asia
+Asuncion,,Gamma -,South America
+Kansas City,,Gamma -,North America
+Seville,,Gamma -,Europe
+Turin,Italy,Gamma -,Europe
+Dar Es Salaam,,Gamma -,Africa
 Portland,,Gamma -,North America
-Krakow,,Gamma -,Europe
- Managua,,Gamma -,North America
- Pune,,Gamma -,Asia
- Leipzig,,Gamma -,Europe
- Malmo,,Gamma -,Europe
-La Paz,,Gamma -,South America
+Krakow,Poland,Gamma -,Europe
+Managua,,Gamma -,North America
+Pune,India,Gamma -,Asia
+Leipzig,Germany,Gamma -,Europe
+Malmo,Sweden,Gamma -,Europe
+La Paz,Bolivia,Gamma -,South America
 Phnom Penh,Cambodia,Gamma -,Asia
 Penang,Malaysia,Gamma -,Asia
 Yangon,Myanmar,Gamma -,Asia
 Medellin,Colombia,Gamma -,South America
 Changsha,China,Gamma -,Asia
+Maputo,Mozambique,Gamma -,Africa
+Nashville,USA,Gamma -,North America
+Johor Bahru,Malaysia,Gamma -,Asia
+Sacramento,USA,Gamma -,North America
+Minsk,Belarus,Gamma -,Europe
