@@ -47,7 +47,7 @@ geo_all <- geo_all[!is.na(Location)]
 #repeats <- names(which(table(geo_all$Location)>1))
 geo_all$Location <- mapvalues(geo_all$Location, from='New York City', to='New York')
 geo_all$Location <- mapvalues(geo_all$Location, from='Airplane', to='Red Eye')
-repeats <- geo_all[,.(times = length(unique(format(Start.Date, "%Y")))), Location][times>3]$Location
+repeats <- geo_all[,.(times = length(unique(format(Start.Date, "%Y")))), Location][times>=3]$Location
 
 total_nights <- geo_all[, .(total=sum(Nights, na.rm=T), uni = length(unique(Start.Date)), sd_d=sd(Start.Date),
                             first_year = min(format(Start.Date, '%Y')), 
@@ -56,12 +56,20 @@ total_nights <- geo_all[, .(total=sum(Nights, na.rm=T), uni = length(unique(Star
 
 repeats_geo <- geo_all[Location %in% repeats, 1:5]
 repeats_geo$id <- 1:nrow(repeats_geo)
+repeats_geo[Location == 'Red Eye']$Country <- 'International'
+repeats_geo$Location <- factor(repeats_geo$Location, unique(repeats_geo$Location))
+repeats_geo$Country <- factor(repeats_geo$Country, unique(repeats_geo$Country))
 repeats_geo.m <- melt(repeats_geo, id.vars = c('Location', 'Country', 'State', 'id'), value.name = 'Date')
-ggplot(repeats_geo.m) + geom_line(aes(x=Date, y=Location, group=id, color=Location)) + 
-  geom_point(aes(x=Date, y=Location, color=Location)) +
-  scale_x_date(labels = date_format("%d-%m-%Y")) + scale_color_discrete(guide=F) +
+ggplot(repeats_geo.m) + geom_line(aes(x=Date, y=Location, group=id, color=Country), size=0.5) + 
+  geom_point(aes(x=Date, y=Location, color=Country), size=.2, shape=23) +
+  scale_x_date(labels = date_format("%Y"), breaks='year') + 
+  scale_color_brewer(palette='RdBu') + 
+  theme(legend.position="bottom", plot.title = element_text(hjust=0.5),
+        panel.background = element_rect(fill='grey'),
+        panel.grid.major = element_blank()) +
    ggtitle('Repeated Locations Over the Years') 
-  
+ggsave('Repeats.jpeg', width=13.5, height=8, dpi=550)
+
 
 loc_refs <- read.csv('total_nights4.csv')
 total_nights <- merge(total_nights, loc_refs[, c('Location', 'Country', 'lon', 'lat')], by = c('Location', 'Country'), all.x=T)
