@@ -7,7 +7,7 @@ library(scales)
 library(rworldmap)
 library(countrycode)
 library(RColorBrewer)
-setwd('~/Documents/CAL/Real_Life/Geography-Improved/')
+setwd('~/Documents/Personal/Geography-Improved/')
 options(stringsAsFactors = F)
 if(!requireNamespace("devtools")) install.packages("devtools")
 devtools::install_github("dkahle/ggmap", ref = "tidyup")
@@ -47,6 +47,17 @@ geo_all <- geo_all[!is.na(Location)]
 #repeats <- names(which(table(geo_all$Location)>1))
 geo_all$Location <- mapvalues(geo_all$Location, from='New York City', to='New York')
 geo_all$Location <- mapvalues(geo_all$Location, from='Airplane', to='Red Eye')
+#if the year ends in the same place as the next year begins, we have an extra spot
+for (i in 2:nrow(geo_all)){
+  if (geo_all$Location[i] == geo_all$Location[i-1]){
+    replacement <- geo_all[i-1,]
+    replacement$End.Date = geo_all$End.Date[i]
+    replacement$Nights = as.numeric(replacement$End.Date - replacement$Start.Date) + 1
+    geo_all <- rbind(geo_all[1:(i-2),], replacement, geo_all[(i+1):nrow(geo_all),])
+    print(replacement)
+  }
+}
+
 repeats <- geo_all[,.(times = length(unique(format(Start.Date, "%Y")))), Location][times>=3]$Location
 
 total_nights <- geo_all[, .(total=sum(Nights, na.rm=T), uni = length(unique(Start.Date)), sd_d=sd(Start.Date),
@@ -61,11 +72,11 @@ repeats_geo$Location <- factor(repeats_geo$Location, unique(repeats_geo$Location
 repeats_geo$Country <- factor(repeats_geo$Country, unique(repeats_geo$Country))
 repeats_geo.m <- melt(repeats_geo, id.vars = c('Location', 'Country', 'State', 'id'), value.name = 'Date')
 ggplot(repeats_geo.m) + geom_line(aes(x=Date, y=Location, group=id, color=Country), size=0.5) + 
-  geom_point(aes(x=Date, y=Location, color=Country), size=.2, shape=23) +
+  geom_point(aes(x=Date, y=Location, color=Country), size=.4, shape=23) +
   scale_x_date(labels = date_format("%Y"), breaks='year') + 
   scale_color_brewer(palette='RdBu') + 
   theme(legend.position="bottom", plot.title = element_text(hjust=0.5),
-        panel.background = element_rect(fill='grey'),
+        panel.background = element_rect(fill='grey30'),
         panel.grid.major = element_blank()) +
    ggtitle('Repeated Locations Over the Years') 
 ggsave('Repeats.jpeg', width=13.5, height=8, dpi=550)
@@ -128,12 +139,13 @@ alpha <- read.csv('AlphaBetaGamma.csv')
 alpha$City.Name <- gsub('^ ', '', alpha$City.Name)
 setDT(alpha)
 geo_simp <- geo_all
-geo_simp$Location <- mapvalues(geo_simp$Location, from=c('Kowloon', 'Aberdeen', 'Brooklyn', 'Newton', 'Cambridge', 'Santa Monica', 
-                     'Washington', 'Arlington', 'Encinitas', 'Huntington Beach', 'Manhattan', 'Indian Rocks Beach'), 
+geo_simp$Location <- mapvalues(geo_simp$Location, from=c('Kowloon', 'Aberdeen', 'Brooklyn', 'Newton', 'Cambridge', 
+                     'Santa Monica', 'Washington', 'Arlington', 'Encinitas', 'Huntington Beach', 'Manhattan', 
+                     'Indian Rocks Beach', 'Sandy Springs'), 
                      to=c('Hong Kong', 'Hong Kong', 'New York', 'Boston', 'Boston', 'Los Angeles', 'Washington, D.C.',
-                                    'Washington, D.C.', 'San Diego', 'Los Angeles', 'New York', 'Tampa'))
+                          'Washington, D.C.', 'San Diego', 'Los Angeles', 'New York', 'Tampa', 'Atlanta'))
 geo_simp$Year <- format(geo_simp$Start.Date, '%Y')
-geo_years <- geo_simp[, .(Nights = sum(Nights)), by=c('Location', 'Country', 'Year')]
+geo_years <- geo_simp[, .(Nights = sum(Nights, na.rm=T)), by=c('Location', 'Country', 'Year')]
 #manual add cause I spent a day in Miami
 added_df <- data.frame(Location= c('Tianjin', 'Miami', 'Philadelphia', 'Philadelphia', 'Cincinnati', 'Seoul'),
                        Country= c('China', 'USA', 'USA', 'USA', 'USA', 'South Korea'), Year= c(2010, 2011, 2013, 2017, 2018, 2018), 
@@ -150,4 +162,41 @@ ggplot(major_cities) + geom_tile(aes(x=Year, y=Location, alpha=log(Nights), fill
   theme(plot.title=element_text(hjust=0.5), panel.grid = element_blank(), strip.text.y = element_text(angle=0)) +
   ggtitle('Major Cities over the Years') +
   geom_text(aes(x=Year, y=Location, label=Nights), size=3)
-ggsave('CityYears2.jpeg', width=10, height=7.4, dpi=330)
+ggsave('CityYears2.jpeg', width=12, height=8.5, dpi=330)
+
+#UN Area
+UN <- read.csv('UNSD — Methodology.csv')
+UN_mapper <- data.frame(Country = c('Hong Kong', 'USA', 'Vietnam', 'England', 'Taiwan', 'South Korea',
+                       'Laos', 'Scotland', 'Czech Republic', 'Northern Ireland', 'Macau'),
+           UN_Country = c('China', 'United States of America', 'Viet Nam', 
+                          'United Kingdom of Great Britain and Northern Ireland',
+                          'China', 'Republic of Korea', "Lao People's Democratic Republic",
+                          'United Kingdom of Great Britain and Northern Ireland', 'Czechia', 
+                          'United Kingdom of Great Britain and Northern Ireland', 'China'))
+total_nights$UN_Country <- mapvalues(total_nights$Country, from=UN_mapper$Country,
+                                     to = UN_mapper$UN_Country)
+total_nights$UN.Sub.region <- mapvalues(total_nights$UN_Country, from = UN$Country.or.Area,
+                                    UN$Sub.region.Name)
+total_nights$Status <- mapvalues(total_nights$UN_Country, from = UN$Country.or.Area,
+                                 UN$Developed...Developing.Countries)
+total_region <- total_nights[!is.na(UN.Sub.region), .(total=sum(total)), 
+                             by=c('Country', 'UN.Sub.region', 'Status')]
+total_region <- total_region[order(total, decreasing = T)]
+total_region$Country <- factor(total_region$Country, levels = total_region$Country)
+ggplot(total_region) + 
+  geom_col(aes(x=Country, y=total, fill=UN.Sub.region), color='white') +
+  geom_text(aes(x=Country, y=total, label=total), hjust=1) +
+  facet_grid(UN.Sub.region ~ ., scales='free', space='free') + coord_flip() +
+  theme(strip.text.y = element_text(angle=0)) +
+  scale_fill_brewer(palette='Set1') + 
+  scale_y_log10('Total Number of Nights') + 
+  ggtitle('Region Chart')
+
+
+major_cities$UN_Country <- mapvalues(major_cities$Country.x, from=UN_mapper$Country,
+                                     to = UN_mapper$UN_Country)
+major_cities <- merge(major_cities, 
+                      UN[,c('Country.or.Area', 'Sub.Region.Name', 'Developed...Developing.Countries')],
+                      by.x = 'UN_Country', by.y = 'Country.or.Area')
+major_cities$UN.Sub.region <- mapvalues(major_cities$UN_Country, from = UN$Country.or.Area,
+                                        UN$Sub.region.Name)
