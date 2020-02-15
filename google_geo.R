@@ -7,7 +7,7 @@ library(scales)
 library(rworldmap)
 library(countrycode)
 library(RColorBrewer)
-setwd('~/Documents/Personal/Geography-Improved/')
+setwd('~/Documents/CAL/Real_Life/Geography-Improved/')
 options(stringsAsFactors = F)
 if(!requireNamespace("devtools")) install.packages("devtools")
 devtools::install_github("dkahle/ggmap", ref = "tidyup")
@@ -18,7 +18,7 @@ register_google(key = Sys.getenv(x='GOOGLE_API'))
 gs_ls()
 
 geogr <- gs_title('Geography of Cal')
-end_year <- 2019
+end_year <- as.numeric(format(Sys.Date(), '%Y'))
 ws_names <- as.character(2008:end_year)
 for(n in ws_names){
   current_sheet <- gs_read(ss=geogr, ws = n)
@@ -60,7 +60,7 @@ for (i in 2:nrow(geo_all)){
 
 repeats <- geo_all[,.(times = length(unique(format(Start.Date, "%Y")))), Location][times>=3]$Location
 
-total_nights <- geo_all[, .(total=sum(Nights, na.rm=T), uni = length(unique(Start.Date)), sd_d=sd(Start.Date),
+total_nights_step <- geo_all[, .(total=sum(Nights, na.rm=T), uni = length(unique(Start.Date)), sd_d=sd(Start.Date),
                             first_year = min(format(Start.Date, '%Y')), 
                             last_year=max(format(Start.Date, '%Y'))), 
                         by=c('Location', 'Country')][order(total, decreasing = T)]
@@ -83,7 +83,7 @@ ggsave('Repeats.jpeg', width=13.5, height=8, dpi=550)
 
 
 loc_refs <- read.csv('total_nights4.csv')
-total_nights <- merge(total_nights, loc_refs[, c('Location', 'Country', 'lon', 'lat')], by = c('Location', 'Country'), all.x=T)
+total_nights <- merge(total_nights_step, loc_refs[, c('Location', 'Country', 'lon', 'lat')], by = c('Location', 'Country'), all.x=T)
 
 
 m1 <- borders('world', fill='black', size=0.2)
@@ -100,7 +100,7 @@ bp <- colorRampPalette(brewer.pal(11, 'PiYG'))(length(unique(total_nights$first_
 
 ggplot() + m1 + m2 + geom_point(data=total_nights[last_year>2007], 
                            aes(x=lon, y=lat, size=total, color=as.factor(last_year),
-                           fill=as.factor(first_year)), shape=21, alpha=0.6) +
+                           fill=as.factor(first_year)), shape=21, alpha=0.8) +
   scale_size_continuous(range = c(0.1,6)) +
   scale_color_manual('Year Last', values=bp, guide=F) +
   scale_fill_manual('Year First', values=bp) +
@@ -140,10 +140,11 @@ alpha$City.Name <- gsub('^ ', '', alpha$City.Name)
 setDT(alpha)
 geo_simp <- geo_all
 geo_simp$Location <- mapvalues(geo_simp$Location, from=c('Kowloon', 'Aberdeen', 'Brooklyn', 'Newton', 'Cambridge', 
-                     'Santa Monica', 'Washington', 'Arlington', 'Encinitas', 'Huntington Beach', 'Manhattan', 
-                     'Indian Rocks Beach', 'Sandy Springs'), 
+                     'Santa Monica', 'Washington', 'Arlington', 'Encinitas', 'Huntington Beach', 
+                     'Manhattan', 'Indian Rocks Beach', 'Sandy Springs', 'Ontario'), 
                      to=c('Hong Kong', 'Hong Kong', 'New York', 'Boston', 'Boston', 'Los Angeles', 'Washington, D.C.',
-                          'Washington, D.C.', 'San Diego', 'Los Angeles', 'New York', 'Tampa', 'Atlanta'))
+                          'Washington, D.C.', 'San Diego', 'Los Angeles', 'New York', 'Tampa', 
+                          'Atlanta', 'Los Angeles'))
 geo_simp$Year <- format(geo_simp$Start.Date, '%Y')
 geo_years <- geo_simp[, .(Nights = sum(Nights, na.rm=T)), by=c('Location', 'Country', 'Year')]
 #manual add cause I spent a day in Miami
