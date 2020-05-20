@@ -9,8 +9,8 @@ library(countrycode)
 library(RColorBrewer)
 setwd('~/Documents/CAL/Real_Life/Geography-Improved/')
 options(stringsAsFactors = F)
-if(!requireNamespace("devtools")) install.packages("devtools")
-devtools::install_github("dkahle/ggmap", ref = "tidyup")
+#if(!requireNamespace("devtools")) install.packages("devtools")
+#devtools::install_github("dkahle/ggmap", ref = "tidyup")
 register_google(key = Sys.getenv(x='GOOGLE_API'))  
 
 # which google sheets do you have access to?
@@ -47,6 +47,14 @@ geo_all <- geo_all[!is.na(Location)]
 #repeats <- names(which(table(geo_all$Location)>1))
 geo_all$Location <- mapvalues(geo_all$Location, from='New York City', to='New York')
 geo_all$Location <- mapvalues(geo_all$Location, from='Airplane', to='Red Eye')
+geo_all$Location <- mapvalues(geo_all$Location, from='Aberdeen', to='Hong Kong')
+
+squash <- TRUE
+if (squash){
+  geo_all$Location <- mapvalues(geo_all$Location, from='Kowloon', to='Hong Kong')
+  geo_all$Location <- mapvalues(geo_all$Location, from='Cambridge', to='Boston')
+}
+
 #if the year ends in the same place as the next year begins, we have an extra spot
 for (i in 2:nrow(geo_all)){
   if (geo_all$Location[i] == geo_all$Location[i-1]){
@@ -55,6 +63,9 @@ for (i in 2:nrow(geo_all)){
     replacement$Nights = as.numeric(replacement$End.Date - replacement$Start.Date) + 1
     geo_all <- rbind(geo_all[1:(i-2),], replacement, geo_all[(i+1):nrow(geo_all),])
     print(replacement)
+    if (i >= nrow(geo_all)){
+      break
+    }
   }
 }
 
@@ -63,7 +74,7 @@ repeats <- geo_all[,.(times = length(unique(format(Start.Date, "%Y")))), Locatio
 total_nights_step <- geo_all[, .(total=sum(Nights, na.rm=T), uni = length(unique(Start.Date)), sd_d=sd(Start.Date),
                             first_year = min(format(Start.Date, '%Y')), 
                             last_year=max(format(Start.Date, '%Y'))), 
-                        by=c('Location', 'Country')][order(total, decreasing = T)]
+                        by=c('Location', 'Country', 'State')][order(total, decreasing = T)]
 
 repeats_geo <- geo_all[Location %in% repeats, 1:5]
 repeats_geo$id <- 1:nrow(repeats_geo)
@@ -93,7 +104,9 @@ ggplot() + m1 + geom_point(data=total_nights, aes(x=lon, y=lat, size=total), col
 
 missing_coords <- intersect(which(is.na(total_nights$lat)), which(!total_nights$Location %in% c('Bus', 'Red Eye', 'Train')))
 for (i in missing_coords){
-  total_nights[i,c('lon', 'lat')] <- geocode(paste(total_nights$Location[i], total_nights$Country[i],sep=', '))
+  address <- with(total_nights, if (!is.na(State[i])) paste(Location[i], State[i], Country[i],sep=', ') else 
+    paste(Location[i], Country[i], sep =', '))
+  total_nights[i,c('lon', 'lat')] <- geocode(address)
 }
 
 bp <- colorRampPalette(brewer.pal(11, 'PiYG'))(length(unique(total_nights$first_year)))
@@ -101,7 +114,7 @@ bp <- colorRampPalette(brewer.pal(11, 'PiYG'))(length(unique(total_nights$first_
 ggplot() + m1 + m2 + geom_point(data=total_nights[last_year>2007], 
                            aes(x=lon, y=lat, size=total, color=as.factor(last_year),
                            fill=as.factor(first_year)), shape=21, alpha=0.8) +
-  scale_size_continuous(range = c(0.1,6)) +
+  scale_size_continuous(range = c(0.1,4)) +
   scale_color_manual('Year Last', values=bp, guide=F) +
   scale_fill_manual('Year First', values=bp) +
   ggtitle('Geography of Cal') + theme(plot.title = element_text(hjust=0.5, size=12))
@@ -201,3 +214,12 @@ major_cities <- merge(major_cities,
                       by.x = 'UN_Country', by.y = 'Country.or.Area')
 major_cities$UN.Sub.region <- mapvalues(major_cities$UN_Country, from = UN$Country.or.Area,
                                         UN$Sub.region.Name)
+
+
+#tile plot
+ggplot(major_cities) + geom_tile(aes(x=Year, y=Location, alpha=log(Nights), fill=Continent), color='black') +
+  facet_wrap( ~ Year, scales='free', nrow=2) +
+  scale_fill_brewer(palette='Set1') + 
+  theme(plot.title=element_text(hjust=0.5), panel.grid = element_blank(), strip.text.y = element_text(angle=0)) +
+  ggtitle('Major Cities over the Years') +
+  geom_text(aes(x=Year, y=Location, label=Nights), size=3)
