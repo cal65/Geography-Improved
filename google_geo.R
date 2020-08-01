@@ -7,6 +7,7 @@ library(scales)
 library(rworldmap)
 library(countrycode)
 library(RColorBrewer)
+library(plotly)
 setwd('~/Documents/CAL/Real_Life/Geography-Improved/')
 options(stringsAsFactors = F)
 #if(!requireNamespace("devtools")) install.packages("devtools")
@@ -90,7 +91,7 @@ ggplot(repeats_geo.m) + geom_line(aes(x=Date, y=Location, group=id, color=Countr
         panel.background = element_rect(fill='grey30'),
         panel.grid.major = element_blank()) +
    ggtitle('Repeated Locations Over the Years') 
-ggsave('Repeats.jpeg', width=13.5, height=8, dpi=550)
+ggsave('Repeats.jpeg', width=13.5, height=5, dpi=550)
 
 
 loc_refs <- read.csv('total_nights4.csv')
@@ -112,13 +113,18 @@ for (i in missing_coords){
 bp <- colorRampPalette(brewer.pal(11, 'PiYG'))(length(unique(total_nights$first_year)))
 
 ggplot() + m1 + m2 + geom_point(data=total_nights[last_year>2007], 
-                           aes(x=lon, y=lat, size=total, color=as.factor(last_year),
-                           fill=as.factor(first_year)), shape=21, alpha=0.8) +
+                           aes(x=lon, y=lat, size=sqrt(total+1), color=last_year,
+                           fill=first_year, text=Location), shape=21, alpha=0.8) +
   scale_size_continuous(range = c(0.1,4)) +
   scale_color_manual('Year Last', values=bp, guide=F) +
   scale_fill_manual('Year First', values=bp) +
-  ggtitle('Geography of Cal') + theme(plot.title = element_text(hjust=0.5, size=12))
-ggsave('Geography_Cal4.jpeg', width=13.5, height=8, dpi=750)
+  ggtitle('Geography of Cal') + 
+  theme(plot.title = element_text(hjust=0.5, size=12), 
+        panel.background = element_rect(fill='lightcyan2'))
+ggsave('Geography_Cal5.jpeg', width=13.5, height=8, dpi=750)
+
+#plotly
+ggplotly()
   #Country chart
 country_count <- geo_all[, .(first_date = min(Start.Date)), by=c('Country')]
 country_count$count <- 1:nrow(country_count)
@@ -161,12 +167,14 @@ geo_simp$Location <- mapvalues(geo_simp$Location, from=c('Kowloon', 'Aberdeen', 
 geo_simp$Year <- format(geo_simp$Start.Date, '%Y')
 geo_years <- geo_simp[, .(Nights = sum(Nights, na.rm=T)), by=c('Location', 'Country', 'Year')]
 #manual add cause I spent a day in Miami
-added_df <- data.frame(Location= c('Tianjin', 'Miami', 'Philadelphia', 'Philadelphia', 'Cincinnati', 'Seoul'),
-                       Country= c('China', 'USA', 'USA', 'USA', 'USA', 'South Korea'), Year= c(2010, 2011, 2013, 2017, 2018, 2018), 
+added_df <- data.frame(Location= c('Tianjin', 'Miami', 'Philadelphia', 'Philadelphia', 
+                                   'Cincinnati', 'Seoul'),
+                       Country= c('China', 'USA', 'USA', 'USA', 'USA', 'South Korea'), 
+                       Year= c(2010, 2011, 2013, 2017, 2018, 2018), 
                        Nights=c(1, 1, 1,1, 2, 1))
 geo_years <- rbind(geo_years, added_df)
 alpha$Rank <- factor(alpha$Rank, levels = unique(alpha$Rank)) #this works because of the order of the spreadsheet
-major_cities <- merge(geo_years, alpha, by.x='Location', by.y='City.Name')
+major_cities <- merge(geo_years, alpha[,-c('Country')], by.x='Location', by.y='City.Name')
 #some manual fixes
 major_cities <- major_cities[Location != 'Portland'] #I haven't been to that Portland
 #tile plot
@@ -189,12 +197,14 @@ UN_mapper <- data.frame(Country = c('Hong Kong', 'USA', 'Vietnam', 'England', 'T
                           'United Kingdom of Great Britain and Northern Ireland', 'China'))
 total_nights$UN_Country <- mapvalues(total_nights$Country, from=UN_mapper$Country,
                                      to = UN_mapper$UN_Country)
+total_nights[Location == 'San Juan']$UN_Country <- 'Puerto Rico'
 total_nights$UN.Sub.region <- mapvalues(total_nights$UN_Country, from = UN$Country.or.Area,
                                     UN$Sub.region.Name)
 total_nights$Status <- mapvalues(total_nights$UN_Country, from = UN$Country.or.Area,
                                  UN$Developed...Developing.Countries)
 total_region <- total_nights[!is.na(UN.Sub.region), .(total=sum(total)), 
-                             by=c('Country', 'UN.Sub.region', 'Status')]
+                             by=c('UN_Country', 'UN.Sub.region', 'Status')]
+names(total_region) <- mapvalues(names(total_region), from='UN_Country', to='Country')
 total_region <- total_region[order(total, decreasing = T)]
 total_region$Country <- factor(total_region$Country, levels = total_region$Country)
 ggplot(total_region) + 
@@ -207,7 +217,7 @@ ggplot(total_region) +
   ggtitle('Region Chart')
 
 
-major_cities$UN_Country <- mapvalues(major_cities$Country.x, from=UN_mapper$Country,
+major_cities$UN_Country <- mapvalues(major_cities$Country, from=UN_mapper$Country,
                                      to = UN_mapper$UN_Country)
 major_cities <- merge(major_cities, 
                       UN[,c('Country.or.Area', 'Sub.Region.Name', 'Developed...Developing.Countries')],
@@ -223,3 +233,4 @@ ggplot(major_cities) + geom_tile(aes(x=Year, y=Location, alpha=log(Nights), fill
   theme(plot.title=element_text(hjust=0.5), panel.grid = element_blank(), strip.text.y = element_text(angle=0)) +
   ggtitle('Major Cities over the Years') +
   geom_text(aes(x=Year, y=Location, label=Nights), size=3)
+ggsave('CityYearsView.jpeg', width=12, height=8.5, dpi=330)
