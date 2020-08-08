@@ -131,7 +131,6 @@ country_count$count <- 1:nrow(country_count)
 
 country_continent <- read.csv('country_count.csv')
 country_count$continent <- mapvalues(country_count$Country, from=country_continent$Country, to=country_continent$continent)
-country_count$continent <- mapvalues(country_count$continent, from='Brazil', to='South America')
 
 ggplot(country_count) + geom_step(aes(x=first_date, y=count)) +
   geom_text(aes(x=first_date, y=count, label=Country, color=continent), hjust=0, vjust=1.2) +
@@ -234,3 +233,19 @@ ggplot(major_cities) + geom_tile(aes(x=Year, y=Location, alpha=log(Nights), fill
   ggtitle('Major Cities over the Years') +
   geom_text(aes(x=Year, y=Location, label=Nights), size=3)
 ggsave('CityYearsView.jpeg', width=12, height=8.5, dpi=330)
+
+
+#step plots of top cities
+
+geo_all[, Running := cumsum(Nights), by = c('Location', 'Country', 'State')]
+
+top_cities <- c('Boston', 'New York', 'Dublin', 'London', 'Bangkok', 'Hong Kong', 'Shanghai', 'Washington')
+
+sub_geo <- geo_all[Location %in% top_cities, c('Location', 'End.Date', 'Running')]
+min(sub_geo$End.Date)
+
+ggplot() + 
+  geom_step(aes(x=End.Date, y=Running, color=Location)) +
+  scale_y_log10() +
+  scale_color_brewer(palette = 'Set1')
+
