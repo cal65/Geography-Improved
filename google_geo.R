@@ -21,6 +21,7 @@ gs_ls()
 geogr <- gs_title('Geography of Cal')
 end_year <- as.numeric(format(Sys.Date(), '%Y'))
 ws_names <- as.character(2008:end_year)
+geo_dfs = {}
 for(n in ws_names){
   current_sheet <- gs_read(ss=geogr, ws = n)
   #search the first column for table head
@@ -29,15 +30,13 @@ for(n in ws_names){
   end_row <- min(which(is.na(current_sheet[start_row:nrow(current_sheet),1])))
   end_row <- ifelse(!is.finite(end_row), nrow(current_sheet), end_row)
   google_colnames <- as.character(current_sheet[start_row,])
-  assign(paste0('geo_df', n), as.data.frame(current_sheet[(start_row+1):(end_row+1),], 
-                                            col.names = google_colnames))
+  geo_dfs[[n]] <- as.data.frame(current_sheet[(start_row+1):(end_row+1),], 
+                                            col.names = google_colnames)
   Sys.sleep(10.5)
 }
 #initiate geo_all by  combining first two dataframes
-geo_all <- rbind(geo_df2008[,1:8], geo_df2009[,1:8])
-for (year in 2010:end_year){
-  geo_all <- rbind(geo_all, get(paste0('geo_df', year))[,1:8])
-}
+geo_all <- do.call('rbind.fill', geo_dfs)
+
 names(geo_all) <- c('Location', 'Country', 'State', 'Start.Date', 'End.Date', 'Color', 'Nights', 'Total')
 geo_all$Start.Date <- as.Date(geo_all$Start.Date, format='%m/%d/%Y')
 geo_all$End.Date <- as.Date(geo_all$End.Date, format='%m/%d/%Y')
@@ -45,7 +44,7 @@ geo_all$Nights <- as.numeric(geo_all$Nights)
 geo_all <- data.table(geo_all)
 geo_all <- geo_all[!is.na(Location)]
 
-#repeats <- names(which(table(geo_all$Location)>1))
+# Manual mapping of some similar location names
 geo_all$Location <- mapvalues(geo_all$Location, from='New York City', to='New York')
 geo_all$Location <- mapvalues(geo_all$Location, from='Airplane', to='Red Eye')
 geo_all$Location <- mapvalues(geo_all$Location, from='Aberdeen', to='Hong Kong')
@@ -125,7 +124,8 @@ ggsave('Geography_Cal5.jpeg', width=13.5, height=8, dpi=750)
 
 #plotly
 ggplotly()
-  #Country chart
+  
+#Country chart
 country_count <- geo_all[, .(first_date = min(Start.Date)), by=c('Country')]
 country_count$count <- 1:nrow(country_count)
 
@@ -167,10 +167,10 @@ geo_simp$Year <- format(geo_simp$Start.Date, '%Y')
 geo_years <- geo_simp[, .(Nights = sum(Nights, na.rm=T)), by=c('Location', 'Country', 'Year')]
 #manual add cause I spent a day in Miami
 added_df <- data.frame(Location= c('Tianjin', 'Miami', 'Philadelphia', 'Philadelphia', 
-                                   'Cincinnati', 'Seoul'),
-                       Country= c('China', 'USA', 'USA', 'USA', 'USA', 'South Korea'), 
-                       Year= c(2010, 2011, 2013, 2017, 2018, 2018), 
-                       Nights=c(1, 1, 1,1, 2, 1))
+                                   'Cincinnati', 'Seoul', 'Bratislava'),
+                       Country= c('China', 'USA', 'USA', 'USA', 'USA', 'South Korea', 'Slovakia'), 
+                       Year= c(2010, 2011, 2013, 2017, 2018, 2018, 2014), 
+                       Nights=c(1, 1, 1,1, 2, 1, 1))
 geo_years <- rbind(geo_years, added_df)
 alpha$Rank <- factor(alpha$Rank, levels = unique(alpha$Rank)) #this works because of the order of the spreadsheet
 major_cities <- merge(geo_years, alpha[,-c('Country')], by.x='Location', by.y='City.Name')
