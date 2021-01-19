@@ -97,8 +97,8 @@ loc_refs <- read.csv('total_nights4.csv')
 total_nights <- merge(total_nights_step, loc_refs[, c('Location', 'Country', 'lon', 'lat')], by = c('Location', 'Country'), all.x=T)
 
 
-m1 <- borders('world', fill='black', size=0.2)
-m2 <- borders('state', fill='black', size=0.2, colour='dark blue')
+m1 <- borders('world', fill='black', size=0.2, alpha=0.8)
+m2 <- borders('state', fill='black', size=0.2, colour='dark blue', alpha=0.2)
 ggplot() + m1 + geom_point(data=total_nights, aes(x=lon, y=lat, size=total), color='sky blue', alpha=0.6) +
   scale_size_continuous(range = c(0.3,5))
 
@@ -114,13 +114,14 @@ bp <- colorRampPalette(brewer.pal(11, 'PiYG'))(length(unique(total_nights$first_
 ggplot() + m1 + m2 + geom_point(data=total_nights[last_year>2007], 
                            aes(x=lon, y=lat, size=sqrt(total+1), color=last_year,
                            fill=first_year, text=Location), shape=21, alpha=0.8) +
-  scale_size_continuous(range = c(0.1,4)) +
+  scale_size_continuous('Total Nights (sq rt)', range = c(0.05,5),
+                        breaks = c(2, 10, 30)) +
   scale_color_manual('Year Last', values=bp, guide=F) +
   scale_fill_manual('Year First', values=bp) +
   ggtitle('Geography of Cal') + 
   theme(plot.title = element_text(hjust=0.5, size=12), 
-        panel.background = element_rect(fill='lightcyan2'))
-ggsave('Geography_Cal5.jpeg', width=13.5, height=8, dpi=750)
+        panel.background = element_rect(fill=alpha('blue', 0.2)))
+ggsave('Geography_Cal6.jpeg', width=13.5, height=8, dpi=750)
 
 #plotly
 ggplotly()
@@ -160,8 +161,8 @@ geo_simp <- geo_all
 geo_simp$Location <- mapvalues(geo_simp$Location, from=c('Kowloon', 'Aberdeen', 'Brooklyn', 'Newton', 'Cambridge', 
                      'Santa Monica', 'Washington', 'Arlington', 'Encinitas', 'Huntington Beach', 
                      'Manhattan', 'Indian Rocks Beach', 'Sandy Springs', 'Ontario'), 
-                     to=c('Hong Kong', 'Hong Kong', 'New York', 'Boston', 'Boston', 'Los Angeles', 'Washington, D.C.',
-                          'Washington, D.C.', 'San Diego', 'Los Angeles', 'New York', 'Tampa', 
+                     to=c('Hong Kong', 'Hong Kong', 'New York', 'Boston', 'Boston', 'Los Angeles', 'Washington',
+                          'Washington', 'San Diego', 'Los Angeles', 'New York', 'Tampa', 
                           'Atlanta', 'Los Angeles'))
 geo_simp$Year <- format(geo_simp$Start.Date, '%Y')
 geo_years <- geo_simp[, .(Nights = sum(Nights, na.rm=T)), by=c('Location', 'Country', 'Year')]
@@ -201,20 +202,22 @@ total_nights$UN.Sub.region <- mapvalues(total_nights$UN_Country, from = UN$Count
                                     UN$Sub.region.Name)
 total_nights$Status <- mapvalues(total_nights$UN_Country, from = UN$Country.or.Area,
                                  UN$Developed...Developing.Countries)
+total_nights <- unique(total_nights)
 total_region <- total_nights[!is.na(UN.Sub.region), .(total=sum(total)), 
                              by=c('UN_Country', 'UN.Sub.region', 'Status')]
 names(total_region) <- mapvalues(names(total_region), from='UN_Country', to='Country')
 total_region <- total_region[order(total, decreasing = T)]
 total_region$Country <- factor(total_region$Country, levels = total_region$Country)
 ggplot(total_region) + 
-  geom_col(aes(x=Country, y=total, fill=UN.Sub.region), color='white') +
-  geom_text(aes(x=Country, y=total, label=total), hjust=1) +
+  geom_col(aes(x=Country, y=total+0.5, fill=UN.Sub.region), color='white') +
+  geom_text(aes(x=Country, y=sqrt(total+0.5), label=total), hjust=1) +
   facet_grid(UN.Sub.region ~ ., scales='free', space='free') + coord_flip() +
-  theme(strip.text.y = element_text(angle=0)) +
-  scale_fill_brewer(palette='Set1') + 
+  theme(strip.text.y = element_text(angle=0), plot.title = element_text(hjust=0.5),
+        panel.grid.minor = element_blank()) +
+  scale_fill_brewer(palette='Set1', guide=F) + 
   scale_y_log10('Total Number of Nights') + 
   ggtitle('Region Chart')
-
+ggsave('Region_Chart.jpeg', width=12, height=9)
 
 major_cities$UN_Country <- mapvalues(major_cities$Country, from=UN_mapper$Country,
                                      to = UN_mapper$UN_Country)
@@ -234,18 +237,92 @@ ggplot(major_cities) + geom_tile(aes(x=Year, y=Location, alpha=log(Nights), fill
   geom_text(aes(x=Year, y=Location, label=Nights), size=3)
 ggsave('CityYearsView.jpeg', width=12, height=8.5, dpi=330)
 
+ggplot(major_cities) + 
+  geom_tile(aes(x=Year, y=Location, alpha=log(Nights), fill=UN.Sub.region), color='black') +
+  facet_grid(Rank ~ ., scales='free', space='free') +
+  scale_fill_brewer(palette='Set1') + 
+  theme(plot.title=element_text(hjust=0.5), panel.grid = element_blank(), strip.text.y = element_text(angle=0)) +
+  ggtitle('Major Cities over the Years') +
+  geom_text(aes(x=Year, y=Location, label=Nights), size=3)
+ggsave('CityYears_UN.jpeg', width=12, height=8.5, dpi=330)
 
 #step plots of top cities
 
 geo_all[, Running := cumsum(Nights), by = c('Location', 'Country', 'State')]
 
-top_cities <- c('Boston', 'New York', 'Dublin', 'London', 'Bangkok', 'Hong Kong', 'Shanghai', 'Washington')
+top_cities <- c('Beijing','Boston', 'New York', 'Dublin', 'London', 'Bangkok', 'Hong Kong', 
+                'Shanghai', 'Washington')
 
 sub_geo <- geo_all[Location %in% top_cities, c('Location', 'End.Date', 'Running')]
 min(sub_geo$End.Date)
 
-ggplot() + 
+ggplot(sub_geo) + 
   geom_step(aes(x=End.Date, y=Running, color=Location)) +
   scale_y_log10() +
   scale_color_brewer(palette = 'Set1')
 
+###
+geo_years <- merge(geo_years, total_nights, by = c('Location', 'Country'), all.x=T)
+source('utils.R')
+mid_df <- calculate_midpoint(geo_years, 'lat', 'lon', 'Year', 'Nights')
+ggplot(mid_df) + geom_point(aes(x=lon_mid, y=lat_mid, color=Year))
+
+geo_all$Year <- format(geo_all$End.Date, '%Y')
+geo_years_all <- geo_all[, .(Nights = sum(Nights, na.rm=T)), by=c('Location', 'Country', 'Year')]
+geo_merged <- merge(geo_years_all, 
+                    total_nights[, c('Location', 'Country', 'State', 'lon', 'lat', 'UN.Sub.region')],
+                    by = c('Location', 'Country'))
+geo_merged <- merge(geo_merged, mid_df, by = 'Year')
+base_df <- data.frame(Location = c('Newton', 'Washington'))
+
+geo_merged$distance <- diag(distm(geo_merged[,c('lon', 'lat')], 
+                                  geo_merged[,c('lon_mid', 'lat_mid')]))
+geo_merged <- geo_merged[Nights > 0 & !is.na(UN.Sub.region)]
+geo_merged <- geo_merged[Year > 2007 & Year < 2021]
+ggplot(geo_merged, aes(x=Year, y=distance/1000)) +
+  geom_point(aes(size=log(Nights), fill=UN.Sub.region, color = Nights > 30), alpha=0.6, shape=21) +
+  geom_text_repel(data=geo_merged[!(Nights==1 & distance < 500000)], 
+                  aes(label=Location, color = Nights > 30), 
+                  size=2.5, hjust=0, nudge_x=-0.5, force=0.5, segment.alpha = 0.2) +
+  ggtitle('Geographic Distance Plot') +
+  scale_fill_brewer('Region', palette = 'Set1') +
+  scale_color_manual('Base', values = c('black', 'blue')) +
+  scale_y_continuous(labels = comma, 'Distance (km)') +
+  scale_size_continuous('Nights', labels=round(exp(0:5)), breaks = c(0:5), range = c(1,8)) +
+  theme(legend.position = 'bottom', plot.title=element_text(hjust=0.5),
+        panel.background = element_rect(fill='white', color='black'))
+ggsave('geodist.jpeg', width=15, height=9)
+
+
+# language analysis
+wiki_lang <- read.csv('wikipedia_language_table.csv')
+wiki_mapper <- data.frame(Country = c('USA', 'England','Scotland', 'Northern Ireland'),
+                        Wiki_Country = c('United States',
+                                       'United Kingdom',
+                                       'United Kingdom',
+                                       'United Kingdom'))
+total_nights$Country <- mapvalues(total_nights$Country, from=wiki_mapper$Country,
+                                     to = wiki_mapper$Wiki_Country)
+# sorry, I'm removing sign languages for brevity sake
+wiki_lang <- wiki_lang[!grepl('Sign Language', wiki_lang$Languages),]
+total_languages <- setDT(merge(total_nights, wiki_lang, by = 'Country'))
+language_sum <- total_languages[, .(total = sum(total), Cal=length(unique(Country))), 
+                                by = 'Languages'][order(total)]
+language_sum$Languages <- factor(language_sum$Languages, levels = language_sum$Languages)
+ggplot(language_sum, aes(x=Languages, y=Cal)) + 
+  geom_col(fill='dark red', color='black') +
+  geom_text(aes(label=n), hjust=-1, color='blue') +
+  coord_flip() +
+  ggtitle('Languages of Cal')
+
+world_langs <- read.csv('World_Languages.csv')
+world_langs_comb <- merge(world_langs, language_sum, by.x = 'Language', by.y='Languages',
+                          all.x=T)
+world_lang_compare <- melt(world_langs_comb[, c('Language', 'World', 'Cal')], value.name = 'Count')
+ggplot(world_lang_compare, aes(x=Language, y = Count)) + 
+  geom_col(aes(fill=variable), position='dodge') +
+  geom_text(aes(y=Count/2, label=Count, group=variable), position=position_dodge(width = 1)) +
+  scale_fill_brewer(palette = 'Set1') +
+  coord_flip() +
+  ggtitle('Country Language Comparison')
+ggsave('World_Language_Comp.jpeg', width=10, height=8)

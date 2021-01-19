@@ -42,7 +42,12 @@ wiki_lang_df = wiki_lang_df.explode("Languages", ignore_index=True)
 wiki_lang_df["Languages"] = wiki_lang_df["Languages"].str.replace(
     "\\(.*\\)", "", regex=True
 )
-wiki_lang_df["Languages"] =  wiki_lang_df["Languages"].str.replace(" language", "")
+wiki_lang_df["Languages"] = wiki_lang_df["Languages"].str.replace(
+    "\\[.*\\]", "", regex=True
+)
+wiki_lang_df["Languages"] = wiki_lang_df["Languages"].str.replace(" language", "")
+wiki_lang_df["Languages"] = wiki_lang_df["Languages"].str.strip()
+
 wiki_lang_df = wiki_lang_df[pd.notnull(wiki_lang_df["Languages"])]
 ## manually add
 added_df = pd.DataFrame(
