@@ -9,6 +9,7 @@ library(countrycode)
 library(RColorBrewer)
 library(plotly)
 setwd('~/Documents/CAL/Real_Life/Geography-Improved/')
+source('geo_data.R')
 options(stringsAsFactors = F)
 #if(!requireNamespace("devtools")) install.packages("devtools")
 #devtools::install_github("dkahle/ggmap", ref = "tidyup")
@@ -16,31 +17,12 @@ register_google(key = Sys.getenv(x='GOOGLE_API'))
 
 # which google sheets do you have access to?
 # may ask you to authenticate in a browser!
-gs_ls()
 
-geogr <- gs_title('Geography of Cal')
-end_year <- as.numeric(format(Sys.Date(), '%Y'))
-ws_names <- as.character(2008:end_year)
-geo_dfs = {}
-for(n in ws_names){
-  current_sheet <- gs_read(ss=geogr, ws = n)
-  #search the first column for table head
-  start_row <- which(current_sheet[,1] == 'Location')
-  #bit awkward, but find the first missing data in first column after Location
-  end_row <- min(which(is.na(current_sheet[start_row:nrow(current_sheet),1])))
-  end_row <- ifelse(!is.finite(end_row), nrow(current_sheet), end_row)
-  google_colnames <- as.character(current_sheet[start_row,])
-  geo_dfs[[n]] <- as.data.frame(current_sheet[(start_row+1):(end_row+1),], 
-                                            col.names = google_colnames)
-  Sys.sleep(10.5)
-}
+
 #initiate geo_all by  combining first two dataframes
-geo_all <- do.call('rbind.fill', geo_dfs)
+geo_all <- preprocess( 'Geography of Cal')
 
-names(geo_all) <- c('Location', 'Country', 'State', 'Start.Date', 'End.Date', 'Color', 'Nights', 'Total')
-geo_all$Start.Date <- as.Date(geo_all$Start.Date, format='%m/%d/%Y')
-geo_all$End.Date <- as.Date(geo_all$End.Date, format='%m/%d/%Y')
-geo_all$Nights <- as.numeric(geo_all$Nights)
+
 geo_all <- data.table(geo_all)
 geo_all <- geo_all[!is.na(Location)]
 
@@ -49,7 +31,7 @@ geo_all$Location <- mapvalues(geo_all$Location, from='New York City', to='New Yo
 geo_all$Location <- mapvalues(geo_all$Location, from='Airplane', to='Red Eye')
 geo_all$Location <- mapvalues(geo_all$Location, from='Aberdeen', to='Hong Kong')
 
-squash <- TRUE
+squash <- F
 if (squash){
   geo_all$Location <- mapvalues(geo_all$Location, from='Kowloon', to='Hong Kong')
   geo_all$Location <- mapvalues(geo_all$Location, from='Cambridge', to='Boston')
@@ -108,14 +90,15 @@ for (i in missing_coords){
     paste(Location[i], Country[i], sep =', '))
   total_nights[i,c('lon', 'lat')] <- geocode(address)
 }
+write.csv(total_nights, 'total_nights4.csv', row.names=F)
 
 bp <- colorRampPalette(brewer.pal(11, 'PiYG'))(length(unique(total_nights$first_year)))
 
 ggplot() + m1 + m2 + geom_point(data=total_nights[last_year>2007], 
                            aes(x=lon, y=lat, size=sqrt(total+1), color=last_year,
                            fill=first_year, text=Location), shape=21, alpha=0.8) +
-  scale_size_continuous('Total Nights (sq rt)', range = c(0.05,5),
-                        breaks = c(2, 10, 30)) +
+  scale_size_continuous('Total Nights (sq rt)', range = c(0.005,4),
+                        breaks = c(3, 10, 30)) +
   scale_color_manual('Year Last', values=bp, guide=F) +
   scale_fill_manual('Year First', values=bp) +
   ggtitle('Geography of Cal') + 
@@ -154,17 +137,19 @@ geo_world <- gvisGeoChart(country_count, 'Country', 'year') +
 plot(geo_world)
 
 #city classification plot
-alpha <- read.csv('AlphaBetaGamma.csv')
+alpha <- setDT(read.csv('AlphaBetaGamma.csv'))
 alpha$City.Name <- gsub('^ ', '', alpha$City.Name)
-setDT(alpha)
 geo_simp <- geo_all
-geo_simp$Location <- mapvalues(geo_simp$Location, from=c('Kowloon', 'Aberdeen', 'Brooklyn', 'Newton', 'Cambridge', 
-                     'Santa Monica', 'Washington', 'Arlington', 'Encinitas', 'Huntington Beach', 
-                     'Manhattan', 'Indian Rocks Beach', 'Sandy Springs', 'Ontario'), 
-                     to=c('Hong Kong', 'Hong Kong', 'New York', 'Boston', 'Boston', 'Los Angeles', 'Washington',
-                          'Washington', 'San Diego', 'Los Angeles', 'New York', 'Tampa', 
-                          'Atlanta', 'Los Angeles'))
-geo_simp$Year <- format(geo_simp$Start.Date, '%Y')
+simp_city_df <- data.frame(city = c('Kowloon', 'Aberdeen', 'Brooklyn', 'Newton', 'Cambridge', 
+                                        'Santa Monica', 'Washington', 'Arlington', 'Encinitas', 
+                                    'Huntington Beach', 'Manhattan', 'Indian Rocks Beach', 'Sandy Springs', 'Ontario'),
+                           simp_city = c('Hong Kong', 'Hong Kong', 'New York', 'Boston', 'Boston', 
+                                         'Los Angeles', 'Washington', 'Washington', 'San Diego', 
+                                         'Los Angeles', 'New York', 'Tampa', 
+                                         'Atlanta', 'Los Angeles'))
+geo_simp$Location <- mapvalues(geo_simp$Location, 
+                               from=simp_city_df$city, to=simp_city_df$simp_city)
+
 geo_years <- geo_simp[, .(Nights = sum(Nights, na.rm=T)), by=c('Location', 'Country', 'Year')]
 #manual add cause I spent a day in Miami
 added_df <- data.frame(Location= c('Tianjin', 'Miami', 'Philadelphia', 'Philadelphia', 
@@ -246,6 +231,35 @@ ggplot(major_cities) +
   geom_text(aes(x=Year, y=Location, label=Nights), size=3)
 ggsave('CityYears_UN.jpeg', width=12, height=8.5, dpi=330)
 
+#alpha all
+geo_simp$Country <- mapvalues(geo_simp$Country, 
+                               from = c('Northern Ireland', 'Scotland', 'England', 'Hong Kong'),
+                               to = c('UK', 'UK', 'UK', 'China'))
+ 
+total_nights_simp <- geo_simp[, .(total = sum(Nights)), by = c('Location', 'Country')]
+added_df2 <- data.frame(Location= c('Tianjin', 'Miami', 'Philadelphia', 'Bratislava'),
+                       Country= c('China', 'USA', 'USA', 'Slovakia'), 
+                       total=c(1, 1, 2, 1))
+total_nights_simp <- rbind.fill(total_nights_simp, added_df2)
+
+alpha$City.Name <- mapvalues(alpha$City.Name, from = c('Washington, D.C.', 'San Jose (CR)'),
+                             to = c('Washington', 'San Jose'))
+alpha2 <- merge(alpha, total_nights_simp, by.x=c('City.Name', 'Country'), 
+                by.y=c('Location', 'Country'), all.x=T)
+alpha2$total[is.na(alpha2$total)] <- 0
+setorderv(alpha2, c('total', 'Rank'), c(1, -1))
+alpha2$City.Name <- factor(alpha2$City.Name, levels = unique(alpha2$City.Name))
+alpha2$Rank_Simp <- gsub('[^a-zA-Z]+', '', alpha2$Rank)
+ggplot(alpha2, aes(x=Rank_Simp, y=City.Name)) + 
+  geom_tile(aes(alpha=sqrt(total), fill=Continent), color='black') +
+  facet_wrap(Continent ~ ., scales='free', nrow=1) +
+  scale_fill_brewer(palette='Set1') + 
+  theme(plot.title=element_text(hjust=0.5), panel.grid = element_blank(), 
+        strip.text.y = element_text(angle=0)) + xlab('Classification') +
+  ggtitle('World Cities') +
+  geom_text(aes(label=total), size=3)
+ggsave('Alpha_All.jpeg', width=16, height=8.5, dpi=330)
+
 #step plots of top cities
 
 geo_all[, Running := cumsum(Nights), by = c('Location', 'Country', 'State')]
@@ -278,7 +292,7 @@ base_df <- data.frame(Location = c('Newton', 'Washington'))
 geo_merged$distance <- diag(distm(geo_merged[,c('lon', 'lat')], 
                                   geo_merged[,c('lon_mid', 'lat_mid')]))
 geo_merged <- geo_merged[Nights > 0 & !is.na(UN.Sub.region)]
-geo_merged <- geo_merged[Year > 2007 & Year < 2021]
+geo_merged <- geo_merged[Year > 2007 ]
 ggplot(geo_merged, aes(x=Year, y=distance/1000)) +
   geom_point(aes(size=log(Nights), fill=UN.Sub.region, color = Nights > 30), alpha=0.6, shape=21) +
   geom_text_repel(data=geo_merged[!(Nights==1 & distance < 500000)], 
@@ -295,7 +309,7 @@ ggsave('geodist.jpeg', width=15, height=9)
 
 
 # language analysis
-wiki_lang <- read.csv('wikipedia_language_table.csv')
+wiki_lang <- fread('external/wikipedia_language_table.csv')
 wiki_mapper <- data.frame(Country = c('USA', 'England','Scotland', 'Northern Ireland'),
                         Wiki_Country = c('United States',
                                        'United Kingdom',
@@ -311,7 +325,7 @@ language_sum <- total_languages[, .(total = sum(total), Cal=length(unique(Countr
 language_sum$Languages <- factor(language_sum$Languages, levels = language_sum$Languages)
 ggplot(language_sum, aes(x=Languages, y=Cal)) + 
   geom_col(fill='dark red', color='black') +
-  geom_text(aes(label=n), hjust=-1, color='blue') +
+  geom_text(aes(label=total), hjust=-1, color='blue') +
   coord_flip() +
   ggtitle('Languages of Cal')
 
@@ -326,3 +340,16 @@ ggplot(world_lang_compare, aes(x=Language, y = Count)) +
   coord_flip() +
   ggtitle('Country Language Comparison')
 ggsave('World_Language_Comp.jpeg', width=10, height=8)
+
+## 
+top_langs <- wiki_lang[Languages %in% world_langs$Language]
+
+
+world_df <- setDT(map_data('world'))
+world_df$region <- mapvalues(world_df$region, from = c('UK', 'USA'),
+                             to = c('United Kingdom', 'United States'))
+world_df[subregion == 'Hong Kong']$region <- 'Hong Kong'
+language_country_sum <- total_languages[, .(total = sum(total)), by = c('Languages', 'Country')]
+world_lang_map <- merge(language_country_sum, world_df, by.x='Country', by.y='region', all.x=T)
+ggplot(world_lang_map) +
+  geom_polygon(aes(x=long, y=lat, group=group, alpha=total, fill=Languages))
