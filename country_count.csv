@@ -1,38 +1,40 @@
-"Country","first_date","count","continent"
-"USA",2007-12-31,1,"North America"
-"Hong Kong",2008-05-28,2,"Asia"
-"China",2008-06-01,3,"Asia"
-"Ireland",2008-08-30,4,"Europe"
-"England",2008-10-02,5,"Europe"
-"Sweden",2008-10-09,6,"Europe"
-"Italy",2008-10-23,7,"Europe"
-"Scotland",2008-11-13,8,"Europe"
-"Germany",2008-11-30,9,"Europe"
-"Czech Republic",2008-12-02,10,"Europe"
-"Poland",2008-12-04,11,"Europe"
-"Northern Ireland",2008-12-12,12,"Europe"
-"Canada",2009-08-22,13,"North America"
-NA,2010-05-30,14,NA
-"India",2010-08-05,15,"Asia"
-"Peru",2010-08-13,16,"South America"
-"Taiwan",2011-12-01,17,"Asia"
-"Singapore",2012-01-21,18,"Asia"
-"Thailand",2012-02-09,19,"Asia"
-"Japan",2012-07-07,20,"Asia"
-"Philippines",2012-11-16,21,"Asia"
-"Malaysia",2013-03-28,22,"Asia"
-"Myanmar",2013-03-29,23,"Asia"
-"South Korea",2014-01-31,24,"Asia"
-"Austria",2014-07-27,25,"Europe"
-"Vietnam",2016-01-15,26,"Asia"
-"Cambodia",2016-02-02,27,"Asia"
-"Laos",2016-02-27,28,"Asia"
-"Colombia",2018-03-01,29,"South America"
-"Brazil",2018-11-10,30,"South America"
-"Panama",2018-12-30,31,"North America"
-"Guatemala",2019-01-01,32,"North America"
-"Spain",2019-06-06,33,"Europe"
-"France",2019-06-09,34,"Europe"
-"Belgium",2019-06-12,35,"Europe"
-"Netherlands",2019-06-13,36,"Europe"
-"Costa Rica",2020-11-14,37,"North America"
+Country,first_date,count,continent
+USA,12/31/07,1,North America
+Hong Kong,5/28/08,2,Asia
+China,6/1/08,3,Asia
+Ireland,8/30/08,4,Europe
+England,10/2/08,5,Europe
+Sweden,10/9/08,6,Europe
+Italy,10/23/08,7,Europe
+Scotland,11/13/08,8,Europe
+Germany,11/30/08,9,Europe
+Czech Republic,12/2/08,10,Europe
+Poland,12/4/08,11,Europe
+Northern Ireland,12/12/08,12,Europe
+Canada,8/22/09,13,North America
+NA,5/30/10,14,NA
+India,8/5/10,15,Asia
+Peru,8/13/10,16,South America
+Taiwan,12/1/11,17,Asia
+Singapore,1/21/12,18,Asia
+Thailand,2/9/12,19,Asia
+Japan,7/7/12,20,Asia
+Philippines,11/16/12,21,Asia
+Malaysia,3/28/13,22,Asia
+Myanmar,3/29/13,23,Asia
+Macau,5/11/13,24,Asia
+South Korea,1/31/14,25,Asia
+Austria,7/27/14,26,Europe
+Vietnam,1/15/16,27,Asia
+Cambodia,2/2/16,28,Asia
+Laos,2/27/16,29,Asia
+Colombia,3/1/18,30,South America
+Brazil,11/10/18,31,South America
+Panama,12/30/18,32,North America
+Guatemala,1/1/19,33,North America
+Spain,6/6/19,34,Europe
+France,6/9/19,35,Europe
+Belgium,6/12/19,36,Europe
+Netherlands,6/13/19,37,Europe
+Costa Rica,11/14/20,38,North America
+Mexico,1/30/21,39,North America

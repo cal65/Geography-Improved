@@ -2,6 +2,7 @@ library(googlesheets)
 library(ggplot2)
 library(ggmap)
 library(plyr)
+library(ggrepel)
 library(data.table)
 library(scales)
 library(rworldmap)
@@ -22,16 +23,14 @@ register_google(key = Sys.getenv(x='GOOGLE_API'))
 #initiate geo_all by  combining first two dataframes
 geo_all <- preprocess( 'Geography of Cal')
 
-
-geo_all <- data.table(geo_all)
-geo_all <- geo_all[!is.na(Location)]
-
+# Map to Cal schema
 # Manual mapping of some similar location names
 geo_all$Location <- mapvalues(geo_all$Location, from='New York City', to='New York')
 geo_all$Location <- mapvalues(geo_all$Location, from='Airplane', to='Red Eye')
 geo_all$Location <- mapvalues(geo_all$Location, from='Aberdeen', to='Hong Kong')
 
-squash <- F
+geo_all$Location_raw <- geo_all$Location
+squash <- T
 if (squash){
   geo_all$Location <- mapvalues(geo_all$Location, from='Kowloon', to='Hong Kong')
   geo_all$Location <- mapvalues(geo_all$Location, from='Cambridge', to='Boston')
@@ -51,19 +50,12 @@ for (i in 2:nrow(geo_all)){
   }
 }
 
-repeats <- geo_all[,.(times = length(unique(format(Start.Date, "%Y")))), Location][times>=3]$Location
-
 total_nights_step <- geo_all[, .(total=sum(Nights, na.rm=T), uni = length(unique(Start.Date)), sd_d=sd(Start.Date),
                             first_year = min(format(Start.Date, '%Y')), 
                             last_year=max(format(Start.Date, '%Y'))), 
                         by=c('Location', 'Country', 'State')][order(total, decreasing = T)]
 
-repeats_geo <- geo_all[Location %in% repeats, 1:5]
-repeats_geo$id <- 1:nrow(repeats_geo)
-repeats_geo[Location == 'Red Eye']$Country <- 'International'
-repeats_geo$Location <- factor(repeats_geo$Location, unique(repeats_geo$Location))
-repeats_geo$Country <- factor(repeats_geo$Country, unique(repeats_geo$Country))
-repeats_geo.m <- melt(repeats_geo, id.vars = c('Location', 'Country', 'State', 'id'), value.name = 'Date')
+repeats_geo.m <- get_repeats(geo_all, 3)
 ggplot(repeats_geo.m) + geom_line(aes(x=Date, y=Location, group=id, color=Country), size=0.5) + 
   geom_point(aes(x=Date, y=Location, color=Country), size=.4, shape=23) +
   scale_x_date(labels = date_format("%Y"), breaks='year') + 
@@ -90,7 +82,7 @@ for (i in missing_coords){
     paste(Location[i], Country[i], sep =', '))
   total_nights[i,c('lon', 'lat')] <- geocode(address)
 }
-write.csv(total_nights, 'total_nights4.csv', row.names=F)
+write.csv(unique(total_nights), 'total_nights4.csv', row.names=F)
 
 bp <- colorRampPalette(brewer.pal(11, 'PiYG'))(length(unique(total_nights$first_year)))
 
@@ -120,7 +112,7 @@ ggplot(country_count) + geom_step(aes(x=first_date, y=count)) +
   geom_text(aes(x=first_date, y=count, label=Country, color=continent), hjust=0, vjust=1.2) +
   ggtitle('New Country Progression') + theme(legend.position = 'bottom',
   plot.title = element_text(hjust=0.5, size=12), panel.background = element_blank()) +
-  xlab('') + expand_limits(x=as.Date('2018-09-01'))
+  xlab('') + expand_limits(x=as.Date('2021-09-01'))
 ggsave('Country_Count.jpeg', width=9, height=6, dpi=300)
 
 country_count$iso3 <- countrycode(country_count$Country, "country.name", 'iso3c')
@@ -287,8 +279,6 @@ geo_merged <- merge(geo_years_all,
                     total_nights[, c('Location', 'Country', 'State', 'lon', 'lat', 'UN.Sub.region')],
                     by = c('Location', 'Country'))
 geo_merged <- merge(geo_merged, mid_df, by = 'Year')
-base_df <- data.frame(Location = c('Newton', 'Washington'))
-
 geo_merged$distance <- diag(distm(geo_merged[,c('lon', 'lat')], 
                                   geo_merged[,c('lon_mid', 'lat_mid')]))
 geo_merged <- geo_merged[Nights > 0 & !is.na(UN.Sub.region)]
@@ -333,6 +323,7 @@ world_langs <- read.csv('World_Languages.csv')
 world_langs_comb <- merge(world_langs, language_sum, by.x = 'Language', by.y='Languages',
                           all.x=T)
 world_lang_compare <- melt(world_langs_comb[, c('Language', 'World', 'Cal')], value.name = 'Count')
+world_lang_compare$Count[is.na(world_lang_compare$Count)] <- 0
 ggplot(world_lang_compare, aes(x=Language, y = Count)) + 
   geom_col(aes(fill=variable), position='dodge') +
   geom_text(aes(y=Count/2, label=Count, group=variable), position=position_dodge(width = 1)) +
@@ -343,13 +334,30 @@ ggsave('World_Language_Comp.jpeg', width=10, height=8)
 
 ## 
 top_langs <- wiki_lang[Languages %in% world_langs$Language]
+language_country_sum <- total_languages[, .(total = sum(total)), by = c('Languages', 'Country')]
+
+top_langs <- merge(top_langs, language_country_sum, all.x=T)
+top_langs$total[is.na(top_langs$total)] <- 0
+top_langs[Country=='Vatican City']$total <- 1
 
 
 world_df <- setDT(map_data('world'))
 world_df$region <- mapvalues(world_df$region, from = c('UK', 'USA'),
                              to = c('United Kingdom', 'United States'))
 world_df[subregion == 'Hong Kong']$region <- 'Hong Kong'
-language_country_sum <- total_languages[, .(total = sum(total)), by = c('Languages', 'Country')]
 world_lang_map <- merge(language_country_sum, world_df, by.x='Country', by.y='region', all.x=T)
 ggplot(world_lang_map) +
-  geom_polygon(aes(x=long, y=lat, group=group, alpha=total, fill=Languages))
+  geom_polygon(aes(x=long, y=lat, group=group, alpha=sqrt(total), fill=Languages), color='black') +
+  ggtitle("Language Map")
+
+## World languages
+top_langs$Country <- mapvalues(top_langs$Country,
+                               from = c('Antigua and Barbuda', 'East Timor', 
+                                        'Republic of the Congo', 'Eswatini',
+                                        'Saint Kitts and Nevis', 'Saint Vincent and the Grenadines'),
+                               to = c('Antigua', 'Timor-Leste', 'Republic of Congo',
+                                      'Swaziland', 'Saint Kitts', 'Saint Vincent'))
+top_lang_map <- merge(top_langs, world_df, by.x='Country', by.y='region', all.x=T)
+top_lang_map$total_bucket <- cut(top_lang_map$total, breaks = c(-Inf,0, 2, 8, 20, 100, 1000, Inf),
+       labels = c('Never', '<3', '<8', '<21', '<100', '<1000', '>1000'))
+

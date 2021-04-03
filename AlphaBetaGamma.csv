@@ -132,56 +132,56 @@ Baltimore,USA,Gamma +,North America
 Jeddah,Saudi Arabia,Gamma +,Asia
 Zagreb,Croatia,Gamma +,Europe
 Adelaide,Australia,Gamma +,Australia
-Durban,,Gamma +,Africa
+Durban,South Africa,Gamma +,Africa
 Santo Domingo,Dominican Republic,Gamma +,North America
-San Salvador,,Gamma +,North America
-St. Louis,,Gamma +,North America
-Islamabad,,Gamma +,Asia
-Guayaquil,,Gamma +,South America
-Cologne,,Gamma +,Europe
-Phoenix,,Gamma +,North America
-Georgetown (CI),,Gamma +,North America
-Osaka,Jordan,Gamma +,Asia
+San Salvador,El Salvador,Gamma +,North America
+St. Louis,USA,Gamma +,North America
+Islamabad,Pakistan,Gamma +,Asia
+Guayaquil,Ecuador,Gamma +,South America
+Cologne,Germany,Gamma +,Europe
+Phoenix,USA,Gamma +,North America
+Georgetown (CI),Cayman Islands,Gamma +,North America
+Osaka,Japan,Beta -,Asia
 Tampa,USA,Gamma +,North America
 Valencia,Spain,Gamma,Europe
-Glasgow,,Gamma,Europe
+Glasgow,Scotland,Gamma,Europe
 San Jose,USA,Gamma,North America
-San Juan,,Gamma,North America
-Marseille,,Gamma,Europe
-Cincinnati,,Gamma,North America
-Guadalajara,,Gamma,North America
-Leeds,,Gamma,Europe
-Baku,,Gamma,Asia
+San Juan,USA,Gamma,North America
+Marseille,France,Gamma,Europe
+Cincinnati,USA,Gamma,North America
+Guadalajara,Mexico,Gamma,North America
+Leeds,UK,Gamma,Europe
+Baku,Azerbaijan,Gamma,Asia
 Tallinn,,Gamma,Europe
 Vilnius,,Gamma,Europe
 Colombo,Sri Lanka,Gamma,Asia
 Raleigh,USA,Gamma,North America
 Ankara,Turkey,Gamma,Asia
-Belfast,,Gamma,Europe
-Milwaukee,,Gamma,North America
+Belfast,UK,Gamma,Europe
+Milwaukee,USA,Gamma,North America
 Muscat,,Gamma,Asia
 Bilbao,Spain,Gamma,Europe
 Taiyuan,China,Gamma,Asia
-Ljubljana,,Gamma,Europe
+Ljubljana,Slovenia,Gamma,Europe
 Kunming,China,Gamma,Asia
-Nantes,,Gamma -,Europe
+Nantes,France,Gamma -,Europe
 Tianjin,China,Gamma -,Asia
-Accra,,Gamma -,Africa
-Algiers,,Gamma -,Africa
-Gothenburg,,Gamma -,Europe
-Porto,,Gamma -,Europe
-Columbus,,Gamma -,North America
-Utrecht,,Gamma -,Europe
-Orlando,,Gamma -,North America
-Ahmedabad,,Gamma -,Asia
+Accra,Ghana,Gamma -,Africa
+Algiers,Algeria,Gamma -,Africa
+Gothenburg,Sweden,Gamma -,Europe
+Porto,Portugal,Gamma -,Europe
+Columbus,USA,Gamma -,North America
+Utrecht,Netherlands,Gamma -,Europe
+Orlando,USA,Gamma -,North America
+Ahmedabad,India,Gamma -,Asia
 Asuncion,,Gamma -,South America
-Kansas City,,Gamma -,North America
-Seville,,Gamma -,Europe
+Kansas City,USA,Gamma -,North America
+Seville,Spain,Gamma -,Europe
 Turin,Italy,Gamma -,Europe
-Dar Es Salaam,,Gamma -,Africa
-Portland,,Gamma -,North America
+Dar Es Salaam,Tanzania,Gamma -,Africa
+Portland,USA,Gamma -,North America
 Krakow,Poland,Gamma -,Europe
-Managua,,Gamma -,North America
+Managua,Nicaragua,Gamma -,North America
 Pune,India,Gamma -,Asia
 Leipzig,Germany,Gamma -,Europe
 Malmo,Sweden,Gamma -,Europe
@@ -196,3 +196,7 @@ Nashville,USA,Gamma -,North America
 Johor Bahru,Malaysia,Gamma -,Asia
 Sacramento,USA,Gamma -,North America
 Minsk,Belarus,Gamma -,Europe
+Queretaro,Mexico,Gamma -,North America
+Salt Lake City,USA,Gamma -,North America
+Harare,Zimbabwe,Gamma -,Africa
+Kaohsiung,Taiwan,Gamma -,Asia
