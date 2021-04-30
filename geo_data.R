@@ -1,29 +1,24 @@
-require(googlesheets)
+require(googlesheets4)
 require(data.table)
 
 preprocess <- function(title = 'Geography of Cal'){
-  geogr <- gs_title(title)
+  geogr <- googledrive::drive_get(title)
   end_year <- as.numeric(format(Sys.Date(), '%Y'))
   ws_names <- as.character(2008:end_year)
   geo_dfs = {}
   for(n in ws_names){
-    current_sheet <- gs_read(ss=geogr, ws = n)
+    current_sheet <- geogr %>% read_sheet(sheet = n, skip=2, col_types = 'cccDDcii?')
     #search the first column for table head
-    start_row <- which(current_sheet[,1] == 'Location')
-    #bit awkward, but find the first missing data in first column after Location
-    end_row <- min(which(is.na(current_sheet[start_row:nrow(current_sheet),1])))
-    end_row <- ifelse(!is.finite(end_row), nrow(current_sheet), end_row)
-    google_colnames <- as.character(current_sheet[start_row,])
-    geo_dfs[[n]] <- as.data.frame(current_sheet[(start_row+1):(end_row+1),], 
-                                  col.names = google_colnames)
+    geo_dfs[[n]] <- as.data.frame(current_sheet)
     Sys.sleep(10.5)
   }
   geo_all <- do.call('rbind.fill', geo_dfs)
-  names(geo_all) <- c('Location', 'Country', 'State', 'Start.Date', 'End.Date', 'Color', 'Nights', 'Total')
+  names(geo_all) <- c('Location', 'Country', 'State', 'Start.Date', 'End.Date', 'Color', 
+                      'Nights', 'Total', 'Notes')
   geo_all$Start.Date <- as.Date(geo_all$Start.Date, format='%m/%d/%Y')
   geo_all$End.Date <- as.Date(geo_all$End.Date, format='%m/%d/%Y')
   geo_all$Nights <- as.numeric(geo_all$Nights)
-  geo_all$Year <- format(geo_all$Start.Date, '%Y')
+  #geo_all$Year <- format(geo_all$Start.Date, '%Y')
   geo_all$Total <- as.numeric(geo_all$Total)
   setDT(geo_all)
   geo_all <- geo_all[!is.na(Location)]
@@ -49,3 +44,15 @@ get_repeats <- function(df, min){
   
   return(repeats.m)
 }
+
+unfold <- function(row, colnames, date_start, date_end){
+  d1 <- as.Date(row[[date_start]])
+  d2 <- as.Date(row[[date_end]])
+  dates <- seq.Date(from=d1, to=d2, by='day')
+  df <- data.frame(matrix(row[1:length(colnames)], nrow=1))
+  names(df) <- colnames
+  df <- df[rep(1, length(dates)),]
+  df$Date.Start <- dates
+  return(df)
+}
+

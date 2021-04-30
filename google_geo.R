@@ -1,4 +1,4 @@
-library(googlesheets)
+library(googlesheets4)
 library(ggplot2)
 library(ggmap)
 library(plyr)
@@ -50,11 +50,13 @@ for (i in 2:nrow(geo_all)){
   }
 }
 
-total_nights_step <- geo_all[, .(total=sum(Nights, na.rm=T), uni = length(unique(Start.Date)), sd_d=sd(Start.Date),
+total_nights_step <- geo_all[, .(total=sum(Nights, na.rm=T), uni = length(unique(Start.Date)), 
+                                 sd_d=sd(Start.Date),
                             first_year = min(format(Start.Date, '%Y')), 
                             last_year=max(format(Start.Date, '%Y'))), 
-                        by=c('Location', 'Country', 'State')][order(total, decreasing = T)]
+                        by=list(Location, Country, State)][order(total, decreasing = T)]
 
+geo_all$Year <- format(geo_all$End.Date, '%Y')
 repeats_geo.m <- get_repeats(geo_all, 3)
 ggplot(repeats_geo.m) + geom_line(aes(x=Date, y=Location, group=id, color=Country), size=0.5) + 
   geom_point(aes(x=Date, y=Location, color=Country), size=.4, shape=23) +
@@ -68,7 +70,8 @@ ggsave('Repeats.jpeg', width=13.5, height=5, dpi=550)
 
 
 loc_refs <- read.csv('total_nights4.csv')
-total_nights <- merge(total_nights_step, loc_refs[, c('Location', 'Country', 'lon', 'lat')], by = c('Location', 'Country'), all.x=T)
+total_nights <- merge(total_nights_step, loc_refs[, c('Location', 'Country', 'lon', 'lat')], 
+                      by = c('Location', 'Country'), all.x=T)
 
 
 m1 <- borders('world', fill='black', size=0.2, alpha=0.8)
@@ -106,7 +109,9 @@ country_count <- geo_all[, .(first_date = min(Start.Date)), by=c('Country')]
 country_count$count <- 1:nrow(country_count)
 
 country_continent <- read.csv('country_count.csv')
-country_count$continent <- mapvalues(country_count$Country, from=country_continent$Country, to=country_continent$continent)
+country_count$continent <- mapvalues(country_count$Country, 
+                                     from=country_continent$Country, 
+                                     to=country_continent$continent)
 
 ggplot(country_count) + geom_step(aes(x=first_date, y=count)) +
   geom_text(aes(x=first_date, y=count, label=Country, color=continent), hjust=0, vjust=1.2) +
@@ -195,6 +200,12 @@ ggplot(total_region) +
   scale_y_log10('Total Number of Nights') + 
   ggtitle('Region Chart')
 ggsave('Region_Chart.jpeg', width=12, height=9)
+
+country_years <- geo_all[Year > 2007, .(total = sum(Nights)), by=list(Country,Year,UN.Sub.region)]
+ggplot(country_years) +
+  geom_col(aes(x=Year, y=total, fill=UN.Sub.region, group=Country), color='black') +
+  coord_flip() +
+  scale_fill_brewer(palette = 'Set1')
 
 major_cities$UN_Country <- mapvalues(major_cities$Country, from=UN_mapper$Country,
                                      to = UN_mapper$UN_Country)
@@ -361,3 +372,27 @@ top_lang_map <- merge(top_langs, world_df, by.x='Country', by.y='region', all.x=
 top_lang_map$total_bucket <- cut(top_lang_map$total, breaks = c(-Inf,0, 2, 8, 20, 100, 1000, Inf),
        labels = c('Never', '<3', '<8', '<21', '<100', '<1000', '>1000'))
 
+
+
+## 
+unfolded_df <- do.call('rbind.fill', 
+                       apply(geo_all[,c('Location', 'Country', 'State', 'Start.Date', 'End.Date')], 
+                             1, 
+                             function(x) unfold(x, c('Location', 'Country', 'State'), 
+                                                'Start.Date', 'End.Date')))
+unfolded_df <- merge(unfolded_df, loc_refs[, c('Location', 'Country', 'lon', 'lat')], 
+                     by = c('Location', 'Country'), all.x=T)
+ggplot(world_df) + geom_polygon(aes(x=long, y=lat, group=group)) +
+  geom_hex(data=unfolded_df, aes(x=lon, y=lat), bins=150, alpha=0.8) +
+  scale_fill_gradient(low='blue', high='red', trans='log', guide=F) +
+  theme_fivethirtyeight()
+ggsave('world_density_visited.jpeg', width=12, height=8)
+
+ggplot(world_df) + geom_polygon(aes(x=long, y=lat, group=group)) +
+  stat_density2d(data=unfolded_df, aes(x=lon, y=lat), bins=150, alpha=0.2) 
+
+ggplot(world_df) + geom_polygon(aes(x=long, y=lat, group=group), fill='grey90', color='black') +
+  geom_hex(data=unfolded_df, aes(x=lon, y=lat), bins=250, alpha=0.8) +
+  scale_fill_gradient(low='pink', high='dark red', trans='log', guide=F) +
+  theme_fivethirtyeight()
+ggsave('world_density_visited.jpeg', width=12, height=8)

@@ -15,7 +15,9 @@ move_origin <- function(df, long='long', lat='lat', orig_x, orig_y, height){
   return (df)
 }
 
-top_lang_map_copy <- top_lang_map[!subregion %in% c('Hawaii', 'Alaska', 'Easter Island')][!is.na(long)]
+ignore_regions <- c('Macquarie Island', 'Hawaii', 'Alaska', 'Easter Island') 
+# these outlying areas ruin the graph normalization
+top_lang_map_copy <- top_lang_map[!subregion %in% ignore_regions][!is.na(long)]
 top_lang_map_copy <- top_lang_map_copy[order(total)]
 country_ranges = vector('list')
 unique_langs <- unique(top_lang_map_copy$Languages)
@@ -23,32 +25,35 @@ for (i in 1:length(unique_langs)){
   l = unique_langs[i]
   lang_df <- top_lang_map_copy[Languages == l]
   orig_x <- 0
-  for (cy in unique(lang_df$Country)){
+  unique_countries <- unique(lang_df$Country)
+  for (cy in unique_countries){
     top_lang_map_copy[Country == cy & Languages == l] <- move_origin(lang_df[Country == cy], 
                                                 orig_x=orig_x, orig_y = i*6,  height=20)
     # add 2 to the original x axis
-    orig_x <- max(top_lang_map_copy[Country == cy & Languages == l]$long, na.rm=T) + 2
+    orig_x <- max(top_lang_map_copy[Country == cy & Languages == l]$long, na.rm=T) + 5000/(length(unique_countries)^2)
     country_ranges[[cy]] <- range(top_lang_map_copy[Country == cy]$long)
   }
 }
 country_range_df <- as.data.frame(unlist(lapply(country_ranges, function(x) x[2] - x[1])))
+palette <- c('White', brewer.pal(7, 'Blues')[-1]) # use blues palette but a real white for "never" color
 ggplot(top_lang_map_copy) + 
   geom_polygon(aes(x=long, y=lat, group=group, fill=total_bucket), color='black') +
   facet_grid(Languages ~ ., scales='free', space = 'free') +
-  scale_fill_brewer(palette = 'Blues', 'Total Nights') +
+  scale_fill_manual(values = palette, 'Total Nights') +
   ggtitle('Countries by Official Languages') +
   theme(plot.title = element_text(hjust=0.5),
         strip.text.y = element_text(angle=0),
         panel.grid=element_blank(),
         axis.ticks = element_blank(),
         axis.title = element_blank(),
-        axis.text = element_blank())
+        axis.text = element_blank(),
+        legend.position = 'bottom')
 ggsave('Official_lang_outlines.jpeg', width=12, height=9)
 
 ggplot(top_lang_map_copy[Languages != 'English']) + 
   geom_polygon(aes(x=long, y=lat, group=group, fill=total_bucket), color='black') +
   facet_grid(Languages ~ ., scales='free', space = 'free') +
-  scale_fill_brewer(palette = 'Blues', 'Total Nights') +
+  scale_fill_manual(values = palette, 'Total Nights') +
   ggtitle('Countries by Official Languages') +
   theme(plot.title = element_text(hjust=0.5),
         strip.text.y = element_text(angle=0),
@@ -56,7 +61,7 @@ ggplot(top_lang_map_copy[Languages != 'English']) +
         axis.ticks = element_blank(),
         axis.title = element_blank(),
         axis.text = element_blank())
-ggsave('Official_lang_outlines_noE.jpeg', width=12, height=9)
+ggsave('Official_lang_outlines_noE.jpeg', width=12, height=11)
 
 extract_countries(vec){
   country_splits <- strsplit(vec, ',(\\s)')
