@@ -72,16 +72,20 @@ alpha_chart <- function(df, renamer, alpha_cities_db, name, save=T){
  if (save == T){
    ggsave(paste0(name,'/CityYears.jpeg'), width=12, height=8.5, dpi=330)
  }
+ return (major_cities)
 }
 
 simp_city_df <- data.frame(city = c('Brooklyn', 'Newton', 'Cambridge','Berkeley',
                                     'Santa Monica', 'Washington', 'Arlington', 'Encinitas', 
-                                    'Carlsbad', 'Manhattan', 'Indian Rocks Beach', 'Sandy Springs', 'Ontario'),
+                                    'Carlsbad', 'Manhattan', 'Indian Rocks Beach', 'Sandy Springs', 
+                                    'Ontario', 'Tel Aviv-Yafo', 'Salt Lake County', 
+                                    'Cook County'),
                            simp_city = c('New York', 'Boston', 'Boston', 'San Francisco',
                                          'Los Angeles', 'Washington, D.C.', 'Washington, D.C.', 'San Diego', 
                                          'San Diego', 'New York', 'Tampa', 
-                                         'Atlanta', 'Los Angeles'))
-alpha_chart(geo_all, simp_city_df, name=name)
+                                         'Atlanta', 'Los Angeles', 'Tel Aviv', 'Salt Lake City',
+                                         'Chicago'))
+alpha_chart(geo_all, simp_city_df, name=name, save=T)
 #tile plot
 
 
