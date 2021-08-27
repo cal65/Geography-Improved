@@ -46,7 +46,7 @@ get_repeats <- function(df, min){
   repeats_df[Location=='Red Eye', Country:='International']
   repeats_df$Location <- factor(repeats_df$Location, unique(repeats_df$Location))
   repeats_df$Country <- factor(repeats_df$Country, unique(repeats_df$Country))
-  repeats.m <- melt(repeats_df[,c('Location', 'Country', 'State', 'id', 'Start.Date', 'End.Date')], 
+  repeats.m <- data.table::melt(repeats_df[,c('Location', 'Country', 'State', 'id', 'Start.Date', 'End.Date')], 
                     id.vars = c('Location', 'Country', 'State', 'id'), value.name = 'Date')
   
   return(repeats.m)
@@ -63,3 +63,10 @@ unfold <- function(row, colnames, date_start, date_end){
   return(df)
 }
 
+convert_states <- function(dt, states_table, country_col='Country', state_col='State', 
+                           year_col='Year', us='USA'){
+  dt_us <- dt[get(country_col) == us]
+  states_dt <- dt_us[, .(Nights = sum(Nights)), by = c(year_col, state_col)]
+  states_dt <- merge(states_dt, states_table, by.x=state_col, by.y='Abbr')
+  return(states_dt)
+}

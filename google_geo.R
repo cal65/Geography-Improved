@@ -139,11 +139,12 @@ alpha$City.Name <- gsub('^ ', '', alpha$City.Name)
 geo_simp <- geo_all
 simp_city_df <- data.frame(city = c('Kowloon', 'Aberdeen', 'Brooklyn', 'Newton', 'Cambridge', 
                                         'Santa Monica', 'Washington', 'Arlington', 'Encinitas', 
-                                    'Huntington Beach', 'Manhattan', 'Indian Rocks Beach', 'Sandy Springs', 'Ontario'),
+                                    'Huntington Beach', 'Manhattan', 'Indian Rocks Beach', 'Sandy Springs', 'Ontario',
+                                    'Decatur'),
                            simp_city = c('Hong Kong', 'Hong Kong', 'New York', 'Boston', 'Boston', 
                                          'Los Angeles', 'Washington', 'Washington', 'San Diego', 
                                          'Los Angeles', 'New York', 'Tampa', 
-                                         'Atlanta', 'Los Angeles'))
+                                         'Atlanta', 'Los Angeles', 'Atlanta'))
 geo_simp$Location <- mapvalues(geo_simp$Location, 
                                from=simp_city_df$city, to=simp_city_df$simp_city)
 
@@ -396,3 +397,21 @@ ggplot(world_df) + geom_polygon(aes(x=long, y=lat, group=group), fill='grey90', 
   scale_fill_gradient(low='pink', high='dark red', trans='log', guide=F) +
   theme_fivethirtyeight()
 ggsave('world_density_visited.jpeg', width=12, height=8)
+
+
+## states map
+states_table <- read.csv('states.csv')
+states_dt <- convert_states(geo_all, states_table)
+year_greens <- colorRampPalette(brewer.pal(9, "Greens"))(length(unique(states_dt$Year)))
+ggplot(states_dt,aes(x=State.y)) + 
+  geom_col(aes(y=sqrt(Nights), fill=fct_rev(Year)), color='grey', position=position_stack()) + 
+  geom_text(aes(y=sqrt(Nights), label=Nights, fct_rev(fct_inorder(State.y))), 
+            position=position_stack(0.5), 
+            size=3, hjust=0.5, color='red') +
+  facet_grid(Region ~ ., scales='free', space='free') + 
+  coord_flip() + 
+  scale_fill_manual(values=year_greens, 'Year') +
+  ggtitle("States over the Years") +
+  theme_few() +
+  theme(plot.title=element_text(hjust=0.5))
+ggsave('states_years.jpeg', width=11, height=7)
