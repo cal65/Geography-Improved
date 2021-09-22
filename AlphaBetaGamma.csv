@@ -88,6 +88,7 @@ Stuttgart,Germany,Beta,Europe
 Rio de Janeiro,Brazil,Beta,South America
 Geneva,Switzerland,Beta,Europe
 Wuhan,China,Beta,Asia
+Austin,USA,Beta -,North America
 Abu Dhabi,UAE,Beta -,Asia
 Nicosia,Cyprus,Beta -,Europe
 Lyon,France,Beta -,Europe
@@ -200,3 +201,6 @@ Queretaro,Mexico,Gamma -,North America
 Salt Lake City,USA,Gamma -,North America
 Harare,Zimbabwe,Gamma -,Africa
 Kaohsiung,Taiwan,Gamma -,Asia
+Ningbo,China,Gamma -,Asia
+Yerevan,Armenia,Gamma -,Asia
+Indianapolis,USA,Gamma -,North America

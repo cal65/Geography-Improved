@@ -70,8 +70,8 @@ ggsave('Repeats.jpeg', width=13.5, height=5, dpi=550)
 
 
 loc_refs <- read.csv('total_nights4.csv')
-total_nights <- merge(total_nights_step, loc_refs[, c('Location', 'Country', 'lon', 'lat')], 
-                      by = c('Location', 'Country'), all.x=T)
+total_nights <- merge(total_nights_step, loc_refs[, c('Location', 'Country', 'State', 'lon', 'lat')], 
+                      by = c('Location', 'Country', 'State'), all.x=T)
 
 
 m1 <- borders('world', fill='black', size=0.2, alpha=0.8)
