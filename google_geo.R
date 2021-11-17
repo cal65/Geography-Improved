@@ -12,12 +12,9 @@ library(plotly)
 setwd('~/Documents/CAL/Real_Life/Geography-Improved/')
 source('geo_data.R')
 options(stringsAsFactors = F)
-#if(!requireNamespace("devtools")) install.packages("devtools")
-#devtools::install_github("dkahle/ggmap", ref = "tidyup")
 register_google(key = Sys.getenv(x='GOOGLE_API'))  
 
-# which google sheets do you have access to?
-# may ask you to authenticate in a browser!
+# authenticate google sheet 
 
 
 #initiate geo_all by  combining first two dataframes
@@ -56,7 +53,6 @@ total_nights_step <- geo_all[, .(total=sum(Nights, na.rm=T), uni = length(unique
                             last_year=max(format(Start.Date, '%Y'))), 
                         by=list(Location, Country, State)][order(total, decreasing = T)]
 
-geo_all$Year <- format(geo_all$End.Date, '%Y')
 repeats_geo.m <- get_repeats(geo_all, 3)
 ggplot(repeats_geo.m) + geom_line(aes(x=Date, y=Location, group=id, color=Country), size=0.5) + 
   geom_point(aes(x=Date, y=Location, color=Country), size=.4, shape=23) +
@@ -73,7 +69,7 @@ loc_refs <- read.csv('total_nights4.csv')
 total_nights <- merge(total_nights_step, loc_refs[, c('Location', 'Country', 'State', 'lon', 'lat')], 
                       by = c('Location', 'Country', 'State'), all.x=T)
 
-
+## country border
 m1 <- borders('world', fill='black', size=0.2, alpha=0.8)
 m2 <- borders('state', fill='black', size=0.2, colour='dark blue', alpha=0.2)
 ggplot() + m1 + geom_point(data=total_nights, aes(x=lon, y=lat, size=total), color='sky blue', alpha=0.6) +
@@ -102,17 +98,11 @@ ggplot() + m1 + m2 + geom_point(data=total_nights[last_year>2007],
 ggsave('Geography_Cal6.jpeg', width=13.5, height=8, dpi=750)
 
 #plotly
-ggplotly()
-  
+map_html <- ggplotly()
+htmlwidgets::saveWidget(as_widget(map_html), "Geography_Cal.html")
+
 #Country chart
-country_count <- geo_all[, .(first_date = min(Start.Date)), by=c('Country')]
-country_count$count <- 1:nrow(country_count)
-
-country_continent <- read.csv('country_count.csv')
-country_count$continent <- mapvalues(country_count$Country, 
-                                     from=country_continent$Country, 
-                                     to=country_continent$continent)
-
+country_count <- country_dates(geo_all, date_start = 'Start.Date')
 ggplot(country_count) + geom_step(aes(x=first_date, y=count)) +
   geom_text(aes(x=first_date, y=count, label=Country, color=continent), hjust=0, vjust=1.2) +
   ggtitle('New Country Progression') + theme(legend.position = 'bottom',
@@ -120,10 +110,7 @@ ggplot(country_count) + geom_step(aes(x=first_date, y=count)) +
   xlab('') + expand_limits(x=as.Date('2021-09-01'))
 ggsave('Country_Count.jpeg', width=9, height=6, dpi=300)
 
-country_count$iso3 <- countrycode(country_count$Country, "country.name", 'iso3c')
-country_count <- country_count[!is.na(Country)]
-country_count[is.na(iso3)]$iso3 <- 'GBR'
-country_count$year <- format(country_count$first_date, "%Y")
+
 malMap <- joinCountryData2Map(country_count, joinCode = "ISO3",
                               nameJoinColumn = "iso3")
 mapCountryData(malMap, nameColumnToPlot="year", catMethod = "categorical",
@@ -182,7 +169,7 @@ total_nights$UN_Country <- mapvalues(total_nights$Country, from=UN_mapper$Countr
                                      to = UN_mapper$UN_Country)
 total_nights[Location == 'San Juan']$UN_Country <- 'Puerto Rico'
 total_nights$UN.Sub.region <- mapvalues(total_nights$UN_Country, from = UN$Country.or.Area,
-                                    UN$Sub.region.Name)
+                                    UN$Sub.region.Name, warning=F)
 total_nights$Status <- mapvalues(total_nights$UN_Country, from = UN$Country.or.Area,
                                  UN$Developed...Developing.Countries)
 total_nights <- unique(total_nights)
@@ -299,7 +286,8 @@ ggplot(geo_merged, aes(x=Year, y=distance/1000)) +
   geom_point(aes(size=log(Nights), fill=UN.Sub.region, color = Nights > 30), alpha=0.6, shape=21) +
   geom_text_repel(data=geo_merged[!(Nights==1 & distance < 500000)], 
                   aes(label=Location, color = Nights > 30), 
-                  size=2.5, hjust=0, nudge_x=-0.5, force=0.5, segment.alpha = 0.2) +
+                  size=2.5, hjust=0, nudge_x=-0.5, force=0.5, segment.alpha = 0.2,
+                  max.overlaps = 15) +
   ggtitle('Geographic Distance Plot') +
   scale_fill_brewer('Region', palette = 'Set1') +
   scale_color_manual('Base', values = c('black', 'blue')) +
@@ -307,7 +295,7 @@ ggplot(geo_merged, aes(x=Year, y=distance/1000)) +
   scale_size_continuous('Nights', labels=round(exp(0:5)), breaks = c(0:5), range = c(1,8)) +
   theme(legend.position = 'bottom', plot.title=element_text(hjust=0.5),
         panel.background = element_rect(fill='white', color='black'))
-ggsave('geodist.jpeg', width=15, height=9)
+ggsave('geodist.jpeg', width=16, height=9.5)
 
 
 # language analysis

@@ -1,5 +1,6 @@
 require(googlesheets4)
 require(data.table)
+require(countrycode)
 
 preprocess <- function(title = 'Geography of Cal', sheet=NA){
   geogr <- googledrive::drive_get(title)
@@ -69,4 +70,19 @@ convert_states <- function(dt, states_table, country_col='Country', state_col='S
   states_dt <- dt_us[, .(Nights = sum(Nights)), by = c(year_col, state_col)]
   states_dt <- merge(states_dt, states_table, by.x=state_col, by.y='Abbr')
   return(states_dt)
+}
+
+country_dates <- function(dt, date_start, continent_csv_path='country_count.csv'){
+  country_count <- dt[, .(first_date = min(Start.Date)), by=c('Country')]
+  country_count$count <- 1:nrow(country_count)
+  
+  country_continent <- read.csv(continent_csv_path)
+  country_count$continent <- mapvalues(country_count$Country, 
+                                       from=country_continent$Country, 
+                                       to=country_continent$continent)
+  country_count$iso3 <- countrycode(country_count$Country, "country.name", 'iso3c')
+  country_count <- country_count[!is.na(Country)]
+  country_count[is.na(iso3)]$iso3 <- 'GBR'
+  country_count$year <- format(country_count$first_date, "%Y")
+  return(country_count)
 }
