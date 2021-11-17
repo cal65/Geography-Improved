@@ -9,6 +9,7 @@ library(rworldmap)
 library(countrycode)
 library(RColorBrewer)
 library(plotly)
+library(htmlwidgets)
 setwd('~/Documents/CAL/Real_Life/Geography-Improved/')
 source('geo_data.R')
 options(stringsAsFactors = F)
@@ -54,13 +55,13 @@ total_nights_step <- geo_all[, .(total=sum(Nights, na.rm=T), uni = length(unique
                         by=list(Location, Country, State)][order(total, decreasing = T)]
 
 repeats_geo.m <- get_repeats(geo_all, 3)
-ggplot(repeats_geo.m) + geom_line(aes(x=Date, y=Location, group=id, color=Country), size=0.5) + 
-  geom_point(aes(x=Date, y=Location, color=Country), size=.4, shape=23) +
+ggplot(repeats_geo.m) + 
+  geom_line(aes(x=Date, y=Location, group=id, color=Country), size=0.5) + 
+  geom_point(aes(x=Date, y=Location, color=Country), size=1.4, shape=23) +
   scale_x_date(labels = date_format("%Y"), breaks='year') + 
   scale_color_brewer(palette='RdBu') + 
-  theme(legend.position="bottom", plot.title = element_text(hjust=0.5),
-        panel.background = element_rect(fill='grey30'),
-        panel.grid.major = element_blank()) +
+  theme_dark() +
+  theme(legend.position="bottom", plot.title = element_text(hjust=0.5)) +
    ggtitle('Repeated Locations Over the Years') 
 ggsave('Repeats.jpeg', width=13.5, height=5, dpi=550)
 
@@ -87,7 +88,8 @@ bp <- colorRampPalette(brewer.pal(11, 'PiYG'))(length(unique(total_nights$first_
 
 ggplot() + m1 + m2 + geom_point(data=total_nights[last_year>2007], 
                            aes(x=lon, y=lat, size=sqrt(total+1), color=last_year,
-                           fill=first_year, text=Location), shape=21, alpha=0.8) +
+                           fill=first_year, text=Location), 
+                           shape=21, alpha=0.8) +
   scale_size_continuous('Total Nights (sq rt)', range = c(0.005,4),
                         breaks = c(3, 10, 30)) +
   scale_color_manual('Year Last', values=bp, guide=F) +
@@ -98,8 +100,8 @@ ggplot() + m1 + m2 + geom_point(data=total_nights[last_year>2007],
 ggsave('Geography_Cal6.jpeg', width=13.5, height=8, dpi=750)
 
 #plotly
-map_html <- ggplotly()
-htmlwidgets::saveWidget(as_widget(map_html), "Geography_Cal.html")
+map_html <- ggplotly(tooltip = c('text', 'first_year'))
+saveWidget(as_widget(map_html), "Geography_Cal.html")
 
 #Country chart
 country_count <- country_dates(geo_all, date_start = 'Start.Date')
@@ -169,9 +171,9 @@ total_nights$UN_Country <- mapvalues(total_nights$Country, from=UN_mapper$Countr
                                      to = UN_mapper$UN_Country)
 total_nights[Location == 'San Juan']$UN_Country <- 'Puerto Rico'
 total_nights$UN.Sub.region <- mapvalues(total_nights$UN_Country, from = UN$Country.or.Area,
-                                    UN$Sub.region.Name, warning=F)
+                                    UN$Sub.region.Name, warn_missing=F)
 total_nights$Status <- mapvalues(total_nights$UN_Country, from = UN$Country.or.Area,
-                                 UN$Developed...Developing.Countries)
+                                 UN$Developed...Developing.Countries, warn_missing=F)
 total_nights <- unique(total_nights)
 total_region <- total_nights[!is.na(UN.Sub.region), .(total=sum(total)), 
                              by=c('UN_Country', 'UN.Sub.region', 'Status')]
@@ -270,7 +272,6 @@ ggplot(sub_geo) +
 geo_years <- merge(geo_years, total_nights, by = c('Location', 'Country'), all.x=T)
 source('utils.R')
 mid_df <- calculate_midpoint(geo_years, 'lat', 'lon', 'Year', 'Nights')
-ggplot(mid_df) + geom_point(aes(x=lon_mid, y=lat_mid, color=Year))
 
 geo_all$Year <- format(geo_all$End.Date, '%Y')
 geo_years_all <- geo_all[, .(Nights = sum(Nights, na.rm=T)), by=c('Location', 'Country', 'Year')]
@@ -283,7 +284,8 @@ geo_merged$distance <- diag(distm(geo_merged[,c('lon', 'lat')],
 geo_merged <- geo_merged[Nights > 0 & !is.na(UN.Sub.region)]
 geo_merged <- geo_merged[Year > 2007 ]
 ggplot(geo_merged, aes(x=Year, y=distance/1000)) +
-  geom_point(aes(size=log(Nights), fill=UN.Sub.region, color = Nights > 30), alpha=0.6, shape=21) +
+  geom_point(aes(size=log(Nights), fill=UN.Sub.region, color = Nights > 30, text=Location), 
+             alpha=0.6, shape=21) +
   geom_text_repel(data=geo_merged[!(Nights==1 & distance < 500000)], 
                   aes(label=Location, color = Nights > 30), 
                   size=2.5, hjust=0, nudge_x=-0.5, force=0.5, segment.alpha = 0.2,
@@ -297,6 +299,8 @@ ggplot(geo_merged, aes(x=Year, y=distance/1000)) +
         panel.background = element_rect(fill='white', color='black'))
 ggsave('geodist.jpeg', width=16, height=9.5)
 
+geo_dist_html <- ggplotly(tooltip = c('text'))
+saveWidget(as_widget(geo_dist_html), "geodist.html")
 
 # language analysis
 wiki_lang <- fread('external/wikipedia_language_table.csv')
