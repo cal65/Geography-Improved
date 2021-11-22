@@ -88,7 +88,7 @@ bp <- colorRampPalette(brewer.pal(11, 'PiYG'))(length(unique(total_nights$first_
 
 ggplot() + m1 + m2 + geom_point(data=total_nights[last_year>2007], 
                            aes(x=lon, y=lat, size=sqrt(total+1), color=last_year,
-                           fill=first_year, text=Location), 
+                           fill=first_year, text=paste(Location, Country, sep='\n')), 
                            shape=21, alpha=0.8) +
   scale_size_continuous('Total Nights (sq rt)', range = c(0.005,4),
                         breaks = c(3, 10, 30)) +
@@ -284,7 +284,8 @@ geo_merged$distance <- diag(distm(geo_merged[,c('lon', 'lat')],
 geo_merged <- geo_merged[Nights > 0 & !is.na(UN.Sub.region)]
 geo_merged <- geo_merged[Year > 2007 ]
 ggplot(geo_merged, aes(x=Year, y=distance/1000)) +
-  geom_point(aes(size=log(Nights), fill=UN.Sub.region, color = Nights > 30, text=Location), 
+  geom_point(aes(size=log(Nights), fill=UN.Sub.region, color = Nights > 30, 
+                 text=paste(Location, Country, sep='\n')), 
              alpha=0.6, shape=21) +
   geom_text_repel(data=geo_merged[!(Nights==1 & distance < 500000)], 
                   aes(label=Location, color = Nights > 30), 
@@ -297,7 +298,7 @@ ggplot(geo_merged, aes(x=Year, y=distance/1000)) +
   scale_size_continuous('Nights', labels=round(exp(0:5)), breaks = c(0:5), range = c(1,8)) +
   theme(legend.position = 'bottom', plot.title=element_text(hjust=0.5),
         panel.background = element_rect(fill='white', color='black'))
-ggsave('geodist.jpeg', width=16, height=9.5)
+ggsave('geodist.jpeg', width=16, height=10)
 
 geo_dist_html <- ggplotly(tooltip = c('text'))
 saveWidget(as_widget(geo_dist_html), "geodist.html")
