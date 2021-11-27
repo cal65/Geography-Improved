@@ -86,3 +86,7 @@ country_dates <- function(dt, date_start, continent_csv_path='country_count.csv'
   country_count$year <- format(country_count$first_date, "%Y")
   return(country_count)
 }
+
+world_cities_graph <- function(df, cities_csv = 'AlphaBetaGamma.csv'){
+  
+}

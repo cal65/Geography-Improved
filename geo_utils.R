@@ -21,11 +21,13 @@ top_lang_map_copy <- top_lang_map[!subregion %in% ignore_regions][!is.na(long)]
 top_lang_map_copy <- top_lang_map_copy[order(total)]
 country_ranges = vector('list')
 unique_langs <- unique(top_lang_map_copy$Languages)
+# loop through each language
 for (i in 1:length(unique_langs)){
   l = unique_langs[i]
   lang_df <- top_lang_map_copy[Languages == l]
   orig_x <- 0
   unique_countries <- unique(lang_df$Country)
+  # for each language, loop through each country
   for (cy in unique_countries){
     top_lang_map_copy[Country == cy & Languages == l] <- move_origin(lang_df[Country == cy], 
                                                 orig_x=orig_x, orig_y = i*6,  height=20)
@@ -37,7 +39,8 @@ for (i in 1:length(unique_langs)){
 country_range_df <- as.data.frame(unlist(lapply(country_ranges, function(x) x[2] - x[1])))
 palette <- c('White', brewer.pal(7, 'Blues')[-1]) # use blues palette but a real white for "never" color
 ggplot(top_lang_map_copy) + 
-  geom_polygon(aes(x=long, y=lat, group=group, fill=total_bucket), color='black') +
+  geom_polygon(aes(x=long, y=lat, group=group, fill=total_bucket, 
+                   text=paste(Country, total, sep='\n')), color='black') +
   facet_grid(Languages ~ ., scales='free', space = 'free') +
   scale_fill_manual(values = palette, 'Total Nights') +
   ggtitle('Countries by Official Languages') +
@@ -48,7 +51,19 @@ ggplot(top_lang_map_copy) +
         axis.title = element_blank(),
         axis.text = element_blank(),
         legend.position = 'bottom')
-ggsave('Official_lang_outlines.jpeg', width=12, height=9)
+ggsave('Official_lang_outlines.jpeg', width=12, height=15)
+m <- list(
+  l = 50,
+  r = 50,
+  b = 100,
+  t = 100,
+  pad = 4
+)
+lang_html <- ggplotly(tooltip = c('text')) %>% 
+                      layout(legend = list(orientation = "h", y=0), 
+                             autosize=F, width = 900, height = 900, margin=m)
+saveWidget(as_widget(lang_html), "language_outlines.html")
+
 
 ggplot(top_lang_map_copy[Languages != 'English']) + 
   geom_polygon(aes(x=long, y=lat, group=group, fill=total_bucket), color='black') +

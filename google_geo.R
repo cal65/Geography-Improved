@@ -10,6 +10,7 @@ library(countrycode)
 library(RColorBrewer)
 library(plotly)
 library(htmlwidgets)
+library(ggthemes)
 setwd('~/Documents/CAL/Real_Life/Geography-Improved/')
 source('geo_data.R')
 options(stringsAsFactors = F)
@@ -87,12 +88,11 @@ write.csv(unique(total_nights), 'total_nights4.csv', row.names=F)
 bp <- colorRampPalette(brewer.pal(11, 'PiYG'))(length(unique(total_nights$first_year)))
 
 ggplot() + m1 + m2 + geom_point(data=total_nights[last_year>2007], 
-                           aes(x=lon, y=lat, size=sqrt(total+1), color=last_year,
+                           aes(x=lon, y=lat, size=sqrt(total+1), 
                            fill=first_year, text=paste(Location, Country, sep='\n')), 
                            shape=21, alpha=0.8) +
-  scale_size_continuous('Total Nights (sq rt)', range = c(0.005,4),
+  scale_size_continuous('Total Nights (sq rt)', range = c(0.02,4),
                         breaks = c(3, 10, 30)) +
-  scale_color_manual('Year Last', values=bp, guide=F) +
   scale_fill_manual('Year First', values=bp) +
   ggtitle('Geography of Cal') + 
   theme(plot.title = element_text(hjust=0.5, size=12), 
@@ -320,7 +320,7 @@ language_sum <- total_languages[, .(total = sum(total), Cal=length(unique(Countr
 language_sum$Languages <- factor(language_sum$Languages, levels = language_sum$Languages)
 ggplot(language_sum, aes(x=Languages, y=Cal)) + 
   geom_col(fill='dark red', color='black') +
-  geom_text(aes(label=total), hjust=-1, color='blue') +
+  geom_text(aes(label=total), hjust=2, color='white') +
   coord_flip() +
   ggtitle('Languages of Cal')
 
