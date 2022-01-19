@@ -90,3 +90,28 @@ country_dates <- function(dt, date_start, continent_csv_path='country_count.csv'
 world_cities_graph <- function(df, cities_csv = 'AlphaBetaGamma.csv'){
   
 }
+
+latlon_barplot <- function(df, col, cutoff, save=T){
+  extreme_indices <- c(which.min(df[,get(col)]), which.max(df[,get(col)]))
+  cutoff_indices <- which(df$total > cutoff)
+  text_df <- df[c(extreme_indices, cutoff_indices),]
+  p <- ggplot(df) + 
+    geom_col(aes(x=get(col), y=total, fill=abs(get(col))), width=0.1)  + 
+    geom_text_repel(data=text_df, aes(x=get(col), 
+                                      y=ifelse(total > cutoff, total*3/4, cutoff), 
+                                      label=Location), size=2, color='orange',
+                    box.padding = 0.1) +
+    scale_y_sqrt("Total Number of Days (sqrt)") +
+    scale_fill_gradient(low='dark red', high='dark blue', guide=F) +
+    theme_few() + xlab(col) +
+    ggtitle(paste0("Distribution by ",  col)) +
+    theme(plot.title = element_text(hjust=0.5), 
+          panel.background = element_rect(fill='grey90'))
+  if (col == 'lat'){
+    p + coord_flip()
+  }
+  if (save == T){
+    ggsave(paste0('Plots/cumulative_', col, '.jpeg'))
+  }
+}
+

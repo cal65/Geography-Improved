@@ -11,6 +11,7 @@ library(RColorBrewer)
 library(plotly)
 library(htmlwidgets)
 library(ggthemes)
+library(forcats)
 setwd('~/Documents/CAL/Real_Life/Geography-Improved/')
 source('geo_data.R')
 options(stringsAsFactors = F)
@@ -64,7 +65,7 @@ ggplot(repeats_geo.m) +
   theme_dark() +
   theme(legend.position="bottom", plot.title = element_text(hjust=0.5)) +
    ggtitle('Repeated Locations Over the Years') 
-ggsave('Repeats.jpeg', width=13.5, height=5, dpi=550)
+ggsave('Plots/Repeats.jpeg', width=13.5, height=5, dpi=550)
 
 
 loc_refs <- read.csv('total_nights4.csv')
@@ -98,6 +99,10 @@ ggplot() + m1 + m2 + geom_point(data=total_nights[last_year>2007],
   theme(plot.title = element_text(hjust=0.5, size=12), 
         panel.background = element_rect(fill=alpha('blue', 0.2)))
 ggsave('Geography_Cal6.jpeg', width=13.5, height=8, dpi=750)
+
+#lats and lons
+latlon_barplot(total_nights, 'lat', 20)
+latlon_barplot(total_nights, 'lon', 20)
 
 #plotly
 map_html <- ggplotly(tooltip = c('text', 'first_year'))
@@ -189,7 +194,7 @@ ggplot(total_region) +
   scale_fill_brewer(palette='Set1', guide=F) + 
   scale_y_log10('Total Number of Nights') + 
   ggtitle('Region Chart')
-ggsave('Region_Chart.jpeg', width=12, height=9)
+ggsave('Plots/Region_Chart.jpeg', width=12, height=9)
 
 country_years <- geo_all[Year > 2007, .(total = sum(Nights)), by=list(Country,Year,UN.Sub.region)]
 ggplot(country_years) +
