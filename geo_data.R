@@ -41,7 +41,8 @@ agg <- function(df, agg_cols){
 
 get_repeats <- function(df, min){
   
-  repeats <- df[,.(times = length(unique(Year))), Location][times>=min]$Location
+  repeats <- df[,.(times = length(unique(Year))), 
+                c('Location', 'Country', 'State')][times>=min]$Location
   repeats_df <- df[Location %in% repeats]
   repeats_df$id <- 1:nrow(repeats_df)
   repeats_df[Location=='Red Eye', Country:='International']
@@ -95,13 +96,18 @@ latlon_barplot <- function(df, col, cutoff, save=T){
   extreme_indices <- c(which.min(df[,get(col)]), which.max(df[,get(col)]))
   cutoff_indices <- which(df$total > cutoff)
   text_df <- df[c(extreme_indices, cutoff_indices),]
+  max_days <- max(df$total)
+  max_ex <- round(log(max_days/2)/log(5))
+  scale_breaks <- 5^c(1:max_ex) * 2
   p <- ggplot(df) + 
     geom_col(aes(x=get(col), y=total, fill=abs(get(col))), width=0.1)  + 
     geom_text_repel(data=text_df, aes(x=get(col), 
                                       y=ifelse(total > cutoff, total*3/4, cutoff), 
                                       label=Location), size=2, color='orange',
                     box.padding = 0.1) +
-    scale_y_sqrt("Total Number of Days (sqrt)") +
+    scale_y_sqrt("Total Number of Days (sqrt)",
+                 breaks = scale_breaks,
+                 labels = scale_breaks) +
     scale_fill_gradient(low='dark red', high='dark blue', guide=F) +
     theme_few() + xlab(col) +
     ggtitle(paste0("Distribution by ",  col)) +
