@@ -2,7 +2,7 @@ require(googlesheets4)
 require(data.table)
 require(countrycode)
 
-preprocess <- function(title = 'Geography of Cal', sheet=NA){
+preprocess <- function(title = 'Geography of Cal', sheet=NA, sleep=10){
   geogr <- googledrive::drive_get(title)
   end_year <- as.numeric(format(Sys.Date(), '%Y'))
   ws_names <- as.character(2008:end_year)
@@ -12,7 +12,7 @@ preprocess <- function(title = 'Geography of Cal', sheet=NA){
       current_sheet <- geogr %>% read_sheet(sheet = n, skip=2, col_types = 'cccDDcii?')
       #search the first column for table head
       geo_dfs[[n]] <- as.data.frame(current_sheet)
-      Sys.sleep(10.5)
+      Sys.sleep(sleep)
     }
     geo_all <- do.call('rbind.fill', geo_dfs)
     names(geo_all) <- c('Location', 'Country', 'State', 'Start.Date', 'End.Date', 'Color', 
@@ -102,7 +102,7 @@ latlon_barplot <- function(df, col, cutoff, save=T){
   p <- ggplot(df) + 
     geom_col(aes(x=get(col), y=total, fill=abs(get(col))), width=0.1)  + 
     geom_text_repel(data=text_df, aes(x=get(col), 
-                                      y=ifelse(total > cutoff, total*3/4, cutoff), 
+                                      y=ifelse(total > cutoff, total, cutoff), 
                                       label=Location), size=2, color='orange',
                     box.padding = 0.1) +
     scale_y_sqrt("Total Number of Days (sqrt)",
@@ -117,7 +117,7 @@ latlon_barplot <- function(df, col, cutoff, save=T){
     p + coord_flip()
   }
   if (save == T){
-    ggsave(paste0('Plots/cumulative_', col, '.jpeg'))
+    ggsave(paste0('Plots/cumulative_', col, '.jpeg'), width = 7.8, height=6)
   }
 }
 

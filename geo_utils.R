@@ -105,4 +105,5 @@ unesco[indices, c('name_en', 'category_short', 'states_name_en')]
 
 joined_df <- st_join(spatial_unesco_buffer, total_nights_sdf, join = st_intersects)
 setDT(joined_df)
-my_df <- unique(joined_df[!is.na(lon), c('name_en', 'category_short', 'states_name_en')])
+my_df <- unique(joined_df[!is.na(lon), c('name_en', 'category_short', 
+                                         'states_name_en', 'Location', 'total')])

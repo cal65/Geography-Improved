@@ -21,7 +21,7 @@ register_google(key = Sys.getenv(x='GOOGLE_API'))
 
 
 #initiate geo_all by  combining first two dataframes
-geo_all <- preprocess( 'Geography of Cal')
+geo_all <- preprocess('Geography of Cal', sleep = 4)
 
 # Map to Cal schema
 # Manual mapping of some similar location names
@@ -59,10 +59,10 @@ total_nights_step <- geo_all[, .(total=sum(Nights, na.rm=T), uni = length(unique
 repeats_geo.m <- get_repeats(geo_all, 3)
 ggplot(repeats_geo.m) + 
   geom_line(aes(x=Date, y=Location, group=id, color=Country), size=0.5) + 
-  geom_point(aes(x=Date, y=Location, color=Country), size=1.4, shape=23) +
+  geom_point(aes(x=Date, y=Location, color=Country), size=0.8, shape=23) +
   scale_x_date(labels = date_format("%Y"), breaks='year') + 
-  scale_color_brewer(palette='RdBu') + 
-  theme_dark() +
+  scale_color_brewer(palette='Paired') + 
+  theme_clean() +
   theme(legend.position="bottom", plot.title = element_text(hjust=0.5)) +
    ggtitle('Repeated Locations Over the Years') 
 ggsave('Plots/Repeats.jpeg', width=13.5, height=5, dpi=550)
@@ -92,17 +92,17 @@ ggplot() + m1 + m2 + geom_point(data=total_nights[last_year>2007],
                            aes(x=lon, y=lat, size=sqrt(total+1), 
                            fill=first_year, text=paste(Location, Country, sep='\n')), 
                            shape=21, alpha=0.8) +
-  scale_size_continuous('Total Nights (sq rt)', range = c(0.02,4),
+  scale_size_continuous('Total Nights (sq rt)', range = c(0.04,4),
                         breaks = c(3, 10, 30)) +
   scale_fill_manual('Year First', values=bp) +
   ggtitle('Geography of Cal') + 
   theme(plot.title = element_text(hjust=0.5, size=12), 
         panel.background = element_rect(fill=alpha('blue', 0.2)))
-ggsave('Geography_Cal6.jpeg', width=13.5, height=8, dpi=750)
+ggsave('Plots/Geography_Cal6.jpeg', width=13.5, height=8, dpi=750)
 
 #lats and lons
-latlon_barplot(total_nights, 'lat', 20)
-latlon_barplot(total_nights, 'lon', 20)
+latlon_barplot(total_nights, 'lat', 16)
+latlon_barplot(total_nights, 'lon', 16)
 
 #plotly
 map_html <- ggplotly(tooltip = c('text', 'first_year'))
@@ -161,7 +161,7 @@ ggplot(major_cities) + geom_tile(aes(x=Year, y=Location, alpha=log(Nights), fill
   theme(plot.title=element_text(hjust=0.5), panel.grid = element_blank(), strip.text.y = element_text(angle=0)) +
   ggtitle('Major Cities over the Years') +
   geom_text(aes(x=Year, y=Location, label=Nights), size=3)
-ggsave('CityYears2.jpeg', width=12, height=8.5, dpi=330)
+ggsave('Plots/CityYears2.jpeg', width=12, height=8.5, dpi=330)
 
 #UN Area
 UN <- read.csv('UNSD — Methodology.csv')
@@ -263,7 +263,7 @@ ggsave('Alpha_All.jpeg', width=16, height=8.5, dpi=330)
 geo_all[, Running := cumsum(Nights), by = c('Location', 'Country', 'State')]
 
 top_cities <- c('Beijing','Boston', 'New York', 'Dublin', 'London', 'Bangkok', 'Hong Kong', 
-                'Shanghai', 'Washington')
+                'Shanghai', 'Washington', 'Seattle')
 
 sub_geo <- geo_all[Location %in% top_cities, c('Location', 'End.Date', 'Running')]
 min(sub_geo$End.Date)
@@ -271,7 +271,7 @@ min(sub_geo$End.Date)
 ggplot(sub_geo) + 
   geom_step(aes(x=End.Date, y=Running, color=Location)) +
   scale_y_log10() +
-  scale_color_brewer(palette = 'Set1')
+  scale_color_brewer(palette = 'Set3')
 
 ###
 geo_years <- merge(geo_years, total_nights, by = c('Location', 'Country'), all.x=T)
@@ -413,3 +413,35 @@ ggplot(states_dt,aes(x=State.y)) +
   theme_few() +
   theme(plot.title=element_text(hjust=0.5))
 ggsave('states_years.jpeg', width=11, height=7)
+
+## elev
+library(elevatr)
+ll_prj <- "EPSG:4326"
+sp <- SpatialPoints(total_nights[!is.na(lon),c('lon', 'lat')])
+df_elev_epqs <- get_elev_point(sp, prj = ll_prj, src = 'aws')
+elev_df <- data.frame(Location =  total_nights[!is.na(lon)]$Location, 
+           Elevation = df_elev_epqs$elevation,
+           State=total_nights[!is.na(lon)]$State,
+           Country=total_nights[!is.na(lon)]$Country)
+total_nights <- merge(total_nights, elev_df, by = c('Location', 'State', 'Country'))
+ggplot(total_nights) +
+  geom_point(aes(x=Elevation, y=lat)) +
+  geom_text_repel(data=total_nights[Elevation > 1000], 
+            aes(x=Elevation, y=lat, label=Location, color=Country)) +
+  scale_color_brewer(palette='Set1') +
+  theme_dark()
+ggplot(total_nights) +
+   geom_point(aes(x=lon, y=lat, size=Elevation, color=log(total)), alpha=0.4) + 
+  scale_color_gradient(low='blue', high='red') +
+  theme_clean()
+
+ggplot(total_nights) +
+  geom_point(aes(x=lon, y=lat, size=log(total), color=Elevation), alpha=0.4) + 
+  scale_color_gradient(low='blue', high='red') +
+  scale_size_continuous(breaks = c(1, 3, 5, 7), 
+                        labels=round(exp(c(1, 3, 5, 7))),
+                        'Total Nights') +
+  theme_clean() +
+  ggtitle('Elevation Map') +
+  theme(plot.title = element_text(hjust = 0.5))
+ggsave('Plots/Elevation_Map.jpeg', width=12, height=9)
