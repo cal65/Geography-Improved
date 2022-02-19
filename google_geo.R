@@ -158,10 +158,11 @@ major_cities <- major_cities[Location != 'Portland'] #I haven't been to that Por
 ggplot(major_cities) + geom_tile(aes(x=Year, y=Location, alpha=log(Nights), fill=Continent), color='black') +
   facet_grid(Rank ~ ., scales='free', space='free') +
   scale_fill_brewer(palette='Set1') + 
+  scale_y_discrete(limits=rev) +
   theme(plot.title=element_text(hjust=0.5), panel.grid = element_blank(), strip.text.y = element_text(angle=0)) +
   ggtitle('Major Cities over the Years') +
   geom_text(aes(x=Year, y=Location, label=Nights), size=3)
-ggsave('Plots/CityYears2.jpeg', width=12, height=8.5, dpi=330)
+ggsave('Plots/CityYears2.jpeg', width=12, height=9.5, dpi=750)
 
 #UN Area
 UN <- read.csv('UNSD — Methodology.csv')
