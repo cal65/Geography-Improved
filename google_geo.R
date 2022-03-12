@@ -30,11 +30,14 @@ geo_all$Location <- mapvalues(geo_all$Location, from='Airplane', to='Red Eye')
 geo_all$Location <- mapvalues(geo_all$Location, from='Aberdeen', to='Hong Kong')
 
 geo_all$Location_raw <- geo_all$Location
+
 squash <- T
 if (squash){
   geo_all$Location <- mapvalues(geo_all$Location, from='Kowloon', to='Hong Kong')
   geo_all$Location <- mapvalues(geo_all$Location, from='Cambridge', to='Boston')
 }
+geo_simp <- geo_all # this will be used later, for location simplifying 
+# and to avoid the crossing new year's decision that we make next
 
 #if the year ends in the same place as the next year begins, we have an extra spot
 for (i in 2:nrow(geo_all)){
@@ -130,30 +133,31 @@ plot(geo_world)
 #city classification plot
 alpha <- setDT(read.csv('AlphaBetaGamma.csv'))
 alpha$City.Name <- gsub('^ ', '', alpha$City.Name)
-geo_simp <- geo_all
 simp_city_df <- data.frame(city = c('Kowloon', 'Aberdeen', 'Brooklyn', 'Newton', 'Cambridge', 
                                         'Santa Monica', 'Washington', 'Arlington', 'Encinitas', 
                                     'Huntington Beach', 'Manhattan', 'Indian Rocks Beach', 'Sandy Springs', 'Ontario',
-                                    'Decatur'),
+                                    'Decatur', 'Jersey City'),
                            simp_city = c('Hong Kong', 'Hong Kong', 'New York', 'Boston', 'Boston', 
                                          'Los Angeles', 'Washington', 'Washington', 'San Diego', 
                                          'Los Angeles', 'New York', 'Tampa', 
-                                         'Atlanta', 'Los Angeles', 'Atlanta'))
+                                         'Atlanta', 'Los Angeles', 'Atlanta', 'New York'))
 geo_simp$Location <- mapvalues(geo_simp$Location, 
                                from=simp_city_df$city, to=simp_city_df$simp_city)
 
 geo_years <- geo_simp[, .(Nights = sum(Nights, na.rm=T)), by=c('Location', 'Country', 'Year')]
 #manual add cause I spent a day in Miami
 added_df <- data.frame(Location= c('Tianjin', 'Miami', 'Philadelphia', 'Philadelphia', 
-                                   'Cincinnati', 'Seoul', 'Bratislava'),
-                       Country= c('China', 'USA', 'USA', 'USA', 'USA', 'South Korea', 'Slovakia'), 
-                       Year= c(2010, 2011, 2013, 2017, 2018, 2018, 2014), 
-                       Nights=c(1, 1, 1,1, 2, 1, 1))
+                                   'Cincinnati', 'Seoul', 'Bratislava', 'Los Angeles'),
+                       Country= c('China', 'USA', 'USA', 'USA', 'USA', 'South Korea', 
+                                  'Slovakia', 'USA'), 
+                       Year= c(2010, 2011, 2013, 2017, 2018, 2018, 2014, 2022), 
+                       Nights=c(1, 1, 1,1, 2, 1, 1, 1))
 geo_years <- rbind(geo_years, added_df)
 alpha$Rank <- factor(alpha$Rank, levels = unique(alpha$Rank)) #this works because of the order of the spreadsheet
 major_cities <- merge(geo_years, alpha[,-c('Country')], by.x='Location', by.y='City.Name')
 #some manual fixes
 major_cities <- major_cities[Location != 'Portland'] #I haven't been to that Portland
+major_cities <- major_cities[!(Location == 'Washington' & Year == 2021)] # Wrong Arlington | TODO
 #tile plot
 ggplot(major_cities) + geom_tile(aes(x=Year, y=Location, alpha=log(Nights), fill=Continent), color='black') +
   facet_grid(Rank ~ ., scales='free', space='free') +
@@ -162,7 +166,7 @@ ggplot(major_cities) + geom_tile(aes(x=Year, y=Location, alpha=log(Nights), fill
   theme(plot.title=element_text(hjust=0.5), panel.grid = element_blank(), strip.text.y = element_text(angle=0)) +
   ggtitle('Major Cities over the Years') +
   geom_text(aes(x=Year, y=Location, label=Nights), size=3)
-ggsave('Plots/CityYears2.jpeg', width=12, height=9.5, dpi=750)
+ggsave('Plots/CityYears2.jpeg', width=12, height=10, dpi=800)
 
 #UN Area
 UN <- read.csv('UNSD — Methodology.csv')
