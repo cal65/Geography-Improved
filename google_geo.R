@@ -213,7 +213,7 @@ major_cities <- merge(major_cities,
                       UN[,c('Country.or.Area', 'Sub.Region.Name', 'Developed...Developing.Countries')],
                       by.x = 'UN_Country', by.y = 'Country.or.Area')
 major_cities$UN.Sub.region <- mapvalues(major_cities$UN_Country, from = UN$Country.or.Area,
-                                        UN$Sub.region.Name)
+                                        UN$Sub.region.Name, warn_missing = F)
 
 
 #tile plot
