@@ -134,13 +134,14 @@ plot(geo_world)
 alpha <- setDT(read.csv('AlphaBetaGamma.csv'))
 alpha$City.Name <- gsub('^ ', '', alpha$City.Name)
 simp_city_df <- data.frame(city = c('Kowloon', 'Aberdeen', 'Brooklyn', 'Newton', 'Cambridge', 
-                                        'Santa Monica', 'Washington', 'Arlington', 'Encinitas', 
+                                    'Santa Monica', 'Washington', 'Arlington', 'Encinitas', 
                                     'Huntington Beach', 'Manhattan', 'Indian Rocks Beach', 'Sandy Springs', 'Ontario',
-                                    'Decatur', 'Jersey City'),
+                                    'Decatur', 'Jersey City', 'Bloomington'),
                            simp_city = c('Hong Kong', 'Hong Kong', 'New York', 'Boston', 'Boston', 
                                          'Los Angeles', 'Washington', 'Washington', 'San Diego', 
-                                         'Los Angeles', 'New York', 'Tampa', 
-                                         'Atlanta', 'Los Angeles', 'Atlanta', 'New York'))
+                                         'Los Angeles', 'New York', 'Tampa', 'Atlanta', 
+                                         'Los Angeles', 
+                                         'Atlanta', 'New York', 'Minneapolis'))
 geo_simp$Location <- mapvalues(geo_simp$Location, 
                                from=simp_city_df$city, to=simp_city_df$simp_city)
 
