@@ -62,7 +62,7 @@ total_nights_step <- geo_all[, .(total=sum(Nights, na.rm=T), uni = length(unique
 repeats_geo.m <- get_repeats(geo_all, 3)
 ggplot(repeats_geo.m) + 
   geom_line(aes(x=Date, y=Location, group=id, color=Country), size=0.5) + 
-  geom_point(aes(x=Date, y=Location, color=Country), size=0.8, shape=23) +
+  geom_point(aes(x=Date, y=Location, color=Country), size=0.3, shape=23) +
   scale_x_date(labels = date_format("%Y"), breaks='year') + 
   scale_color_brewer(palette='Paired') + 
   theme_clean() +
@@ -95,7 +95,7 @@ ggplot() + m1 + m2 + geom_point(data=total_nights[last_year>2007],
                            aes(x=lon, y=lat, size=sqrt(total+1), 
                            fill=first_year, text=paste(Location, Country, sep='\n')), 
                            shape=21, alpha=0.8) +
-  scale_size_continuous('Total Nights (sq rt)', range = c(0.04,4),
+  scale_size_continuous('Total Nights (sq rt)', range = c(0.1,4),
                         breaks = c(3, 10, 30)) +
   scale_fill_manual('Year First', values=bp) +
   ggtitle('Geography of Cal') + 
@@ -309,7 +309,7 @@ ggplot(geo_merged, aes(x=Year, y=distance/1000)) +
   scale_size_continuous('Nights', labels=round(exp(0:5)), breaks = c(0:5), range = c(1,8)) +
   theme(legend.position = 'bottom', plot.title=element_text(hjust=0.5),
         panel.background = element_rect(fill='white', color='black'))
-ggsave('geodist.jpeg', width=16, height=10)
+ggsave('geodist.jpeg', width=16, height=12, dpi=350)
 
 geo_dist_html <- ggplotly(tooltip = c('text'))
 saveWidget(as_widget(geo_dist_html), "geodist.html")
@@ -418,7 +418,7 @@ ggplot(states_dt,aes(x=State.y)) +
   ggtitle("States over the Years") +
   theme_few() +
   theme(plot.title=element_text(hjust=0.5))
-ggsave('states_years.jpeg', width=11, height=7)
+ggsave('Plots/states_years.jpeg', width=11, height=7)
 
 ## elev
 library(elevatr)
