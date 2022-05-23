@@ -112,7 +112,11 @@ ggplot() + m1 + m2 + geom_point(data=total_nights[last_year>2007],
                            aes(x=lon, y=lat, size=sqrt(total+1), 
                            fill=first_year, text=paste(Location, Country, sep='\n')), 
                            shape=21, alpha=0.8) +
+<<<<<<< HEAD
   scale_size_continuous('Total Nights (sq rt)', range = c(0.1, 3),
+=======
+  scale_size_continuous('Total Nights (sq rt)', range = c(0.1,4),
+>>>>>>> f22c766 (fix: plot readability)
                         breaks = c(3, 10, 30)) +
   scale_fill_manual('Year First', values=bp) +
   ggtitle('Geography of Cal') + 
