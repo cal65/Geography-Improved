@@ -16,7 +16,6 @@ setwd('~/Documents/CAL/Real_Life/Geography-Improved/')
 source('geo_data.R')
 options(stringsAsFactors = F)
 register_google(key = Sys.getenv(x='GOOGLE_API'))  
-
 # authenticate google sheet 
 
 # pull from google one sheet at a time
@@ -69,6 +68,25 @@ ggplot(repeats_geo.m) +
    ggtitle('Repeated Locations Over the Years') 
 ggsave('Plots/Repeats.jpeg', width=13.5, height=5, dpi=550)
 
+repeats_geo.m <- get_repeats(geo_simp, 3)
+repeats_geo.m$Date_2012 <- as.Date(format(repeats_geo.m$Date, format='2012-%m-%d'))
+repeats_geo.m$Year <- as.numeric(format(repeats_geo.m$Date, '%Y'))
+ggplot(repeats_geo.m[Location %in% 
+       c('Boston', 'Hong Kong', 'Seattle', 'New York',
+         'Washington', 'Bangkok', 'Beijing', 'Shanghai', 'Tokyo')]) + 
+  geom_line(aes(x=Date_2012, y=Year, group=id, color=Country)) + 
+  geom_point(aes(x=Date_2012, y=Year, fill=Country), size=1, shape=23) +
+  facet_grid(Location ~ .) + 
+  scale_color_brewer(palette='Dark2') + 
+  scale_fill_brewer(palette='Dark2') + 
+  scale_x_date('Date', date_breaks = '2 months', date_labels = "%B") + 
+  scale_y_reverse(breaks=pretty_breaks()) +
+  ggtitle("Repeated Locations") +
+   theme_pander() +
+  theme(panel.border = element_rect(fill=NA, color='black'),
+        legend.position="bottom", plot.title = element_text(hjust=0.5),
+        strip.text.y = element_text(angle=0))
+ggsave('Plots/Repeats2.jpeg', width=12, height=9, dpi=550)
 
 loc_refs <- read.csv('total_nights4.csv')
 total_nights <- merge(total_nights_step, loc_refs[, c('Location', 'Country', 'State', 'lon', 'lat')], 

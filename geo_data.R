@@ -1,18 +1,26 @@
 require(googlesheets4)
 require(data.table)
 require(countrycode)
+require(readxl)
 
-preprocess <- function(title = 'Geography of Cal', sheet=NA, sleep=10){
-  geogr <- googledrive::drive_get(title)
+preprocess <- function(title = 'Geography of Cal', sheet=NA, google=T, sleep=10){
+  if (google == T){
+    geogr <- googledrive::drive_get(title)
+  }
   end_year <- as.numeric(format(Sys.Date(), '%Y'))
   ws_names <- as.character(2008:end_year)
   if (is.na(sheet)){
     geo_dfs = {}
     for(n in ws_names){
-      current_sheet <- geogr %>% read_sheet(sheet = n, skip=2, col_types = 'cccDDcii?')
+      if (google == T){
+        current_sheet <- geogr %>% read_sheet(sheet = n, skip=2, col_types = 'cccDDcii?')
+        Sys.sleep(sleep)
+      }
+      else {
+        current_sheet  <- read_xlsx(path=title, sheet=n, skip=2)
+      }
       #search the first column for table head
       geo_dfs[[n]] <- as.data.frame(current_sheet)
-      Sys.sleep(sleep)
     }
     geo_all <- do.call('rbind.fill', geo_dfs)
     names(geo_all) <- c('Location', 'Country', 'State', 'Start.Date', 'End.Date', 'Color', 
