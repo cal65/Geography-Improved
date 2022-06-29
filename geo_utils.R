@@ -86,11 +86,12 @@ library(sp)
 library(sf)
 library(xlsx)
 unesco <- read.xlsx('external/whc-sites-2019.xls', sheetIndex = 1)
+crs_wgs84 <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 spatial_unesco <- SpatialPointsDataFrame(coords = unesco[,c('longitude', 'latitude')],
   data = unesco,
   proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
 spatial_unesco <- st_as_sf(spatial_unesco)
-st_crs(spatial_unesco) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+st_crs(spatial_unesco) <- crs_wgs84
 spatial_unesco_km <- st_transform(spatial_unesco, "+proj=utm +zone=42N +datum=WGS84 +units=km")
 spatial_unesco_buffer <- st_buffer(spatial_unesco_km, 60)
 total_nights_sdf <- SpatialPointsDataFrame(coords = total_nights[!is.na(lon),c('lon', 'lat')],
@@ -98,12 +99,30 @@ total_nights_sdf <- SpatialPointsDataFrame(coords = total_nights[!is.na(lon),c('
                                            proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
 total_nights_sdf <- st_as_sf(total_nights_sdf)
 st_crs(total_nights_sdf) <- CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
-total_nights_sdf <- st_transform(total_nights_sdf, "+proj=utm +zone=42N +datum=WGS84 +units=km")
-indices <- sapply(st_contains(spatial_unesco_buffer, total_nights_sdf), function(z) if (length(z)==0) NA_integer_ else z[1])
+total_nights_sdf_km <- st_transform(total_nights_sdf, "+proj=utm +zone=42N +datum=WGS84 +units=km")
+indices <- sapply(st_contains(spatial_unesco_buffer, total_nights_sdf_km), function(z) if (length(z)==0) NA_integer_ else z[1])
 indices <- unique(indices)
 unesco[indices, c('name_en', 'category_short', 'states_name_en')]
 
-joined_df <- st_join(spatial_unesco_buffer, total_nights_sdf, join = st_intersects)
+joined_df <- st_join(spatial_unesco_buffer, total_nights_sdf_km, join = st_intersects)
 setDT(joined_df)
 my_df <- unique(joined_df[!is.na(lon), c('name_en', 'category_short', 
                                          'states_name_en', 'Location', 'total')])
+
+
+
+climate <- read.csv('external/other_climate_2007_koppen_geiger.csv')
+climate$geometry <- st_as_sfc(climate$geometry)
+climate <- st_as_sf(climate)
+st_crs(climate) <- crs_wgs84
+climate_km <- st_transform(climate, "+proj=utm +zone=42N +datum=WGS84 +units=km")
+climate_joined_df <- st_join(climate, total_nights_sdf, join = st_intersects)
+setDT(climate_joined_df)
+climate_joined_df <- unique(climate_joined_df[!is.na(lon), 
+                           c('climate',  'Location', 'State', 'Country', 'total')])
+climate_joined_df$climate_simp <- substr(climate_joined_df$climate, 1,2)
+climate_joined_df[, .(total=sum(total), n_countries=length(unique(Country))),
+                  by='climate_simp']
+ggplot(climate_joined_df) +
+  geom_col(aes(x=climate_simp, y=total)) +
+  coord_flip()

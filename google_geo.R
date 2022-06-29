@@ -19,8 +19,7 @@ register_google(key = Sys.getenv(x='GOOGLE_API'))
 
 # authenticate google sheet 
 
-
-#initiate geo_all by  combining first two dataframes
+# pull from google one sheet at a time
 geo_all <- preprocess('Geography of Cal', sleep = 4)
 
 # Map to Cal schema
@@ -95,7 +94,7 @@ ggplot() + m1 + m2 + geom_point(data=total_nights[last_year>2007],
                            aes(x=lon, y=lat, size=sqrt(total+1), 
                            fill=first_year, text=paste(Location, Country, sep='\n')), 
                            shape=21, alpha=0.8) +
-  scale_size_continuous('Total Nights (sq rt)', range = c(0.1,4),
+  scale_size_continuous('Total Nights (sq rt)', range = c(0.1, 3),
                         breaks = c(3, 10, 30)) +
   scale_fill_manual('Year First', values=bp) +
   ggtitle('Geography of Cal') + 
@@ -202,11 +201,18 @@ ggplot(total_region) +
   ggtitle('Region Chart')
 ggsave('Plots/Region_Chart.jpeg', width=12, height=9)
 
-country_years <- geo_all[Year > 2007, .(total = sum(Nights)), by=list(Country,Year,UN.Sub.region)]
+geo_simp$UN_Country <- mapvalues(geo_simp$Country, from=UN_mapper$Country,
+                 to = UN_mapper$UN_Country)
+geo_simp[Location == 'San Juan']$UN_Country <- 'Puerto Rico'
+geo_simp$UN.Sub.region <- mapvalues(geo_simp$UN_Country, from = UN$Country.or.Area,
+                                        UN$Sub.region.Name, warn_missing=F)
+country_years <- geo_simp[Year > 2007, .(total = sum(Nights, na.rm=T)), 
+                         by=list(Country,Year,UN.Sub.region)]
 ggplot(country_years) +
   geom_col(aes(x=Year, y=total, fill=UN.Sub.region, group=Country), color='black') +
   coord_flip() +
-  scale_fill_brewer(palette = 'Set1')
+  scale_fill_brewer(palette = 'Set1', 'UN Region') +
+  theme_pander()
 
 major_cities$UN_Country <- mapvalues(major_cities$Country, from=UN_mapper$Country,
                                      to = UN_mapper$UN_Country)
@@ -224,7 +230,7 @@ ggplot(major_cities) + geom_tile(aes(x=Year, y=Location, alpha=log(Nights), fill
   theme(plot.title=element_text(hjust=0.5), panel.grid = element_blank(), strip.text.y = element_text(angle=0)) +
   ggtitle('Major Cities over the Years') +
   geom_text(aes(x=Year, y=Location, label=Nights), size=3)
-ggsave('CityYearsView.jpeg', width=12, height=8.5, dpi=330)
+ggsave('Plot/CityYearsView.jpeg', width=12, height=8.5, dpi=330)
 
 ggplot(major_cities) + 
   geom_tile(aes(x=Year, y=Location, alpha=log(Nights), fill=UN.Sub.region), color='black') +
@@ -326,13 +332,14 @@ total_nights$Country <- mapvalues(total_nights$Country, from=wiki_mapper$Country
 # sorry, I'm removing sign languages for brevity sake
 wiki_lang <- wiki_lang[!grepl('Sign Language', wiki_lang$Languages),]
 total_languages <- setDT(merge(total_nights, wiki_lang, by = 'Country'))
-language_sum <- total_languages[, .(total = sum(total), Cal=length(unique(Country))), 
+language_sum <- total_languages[, .(total = sum(total), n_country=length(unique(Country))), 
                                 by = 'Languages'][order(total)]
 language_sum$Languages <- factor(language_sum$Languages, levels = language_sum$Languages)
-ggplot(language_sum, aes(x=Languages, y=Cal)) + 
+ggplot(language_sum, aes(x=Languages, y=n_country)) + 
   geom_col(fill='dark red', color='black') +
   geom_text(aes(label=total), hjust=2, color='white') +
   coord_flip() +
+  theme_pander() +
   ggtitle('Languages of Cal')
 
 world_langs <- read.csv('World_Languages.csv')
@@ -406,12 +413,17 @@ ggsave('world_density_visited.jpeg', width=12, height=8)
 ## states map
 states_table <- read.csv('states.csv')
 states_dt <- convert_states(geo_all, states_table)
+states_totals <- states_dt[, .(Total = sum(Nights, na.rm=T)), by=State]
+states_dt <- merge(states_dt, states_totals, by='State')
+states_dt$Prop <- with(states_dt, Nights/Total)
+states_dt$TotalSqrt <- with(states_dt, sqrt(Total))
+states_dt$NightsSqrt <- with(states_dt, Prop * TotalSqrt)
 year_greens <- colorRampPalette(brewer.pal(9, "Greens"))(length(unique(states_dt$Year)))
 ggplot(states_dt,aes(x=State.y)) + 
-  geom_col(aes(y=sqrt(Nights), fill=fct_rev(Year)), color='grey', position=position_stack()) + 
-  geom_text(aes(y=sqrt(Nights), label=Nights, fct_rev(fct_inorder(State.y))), 
+  geom_col(aes(y=NightsSqrt, fill=fct_rev(Year)), color='grey', position=position_stack()) + 
+  geom_text(aes(y=NightsSqrt, label=Nights, fct_rev(fct_inorder(State.y))), 
             position=position_stack(0.5), 
-            size=3, hjust=0.5, color='red') +
+            size=3, hjust=0.5, color='red', alpha=0.5) +
   facet_grid(Region ~ ., scales='free', space='free') + 
   coord_flip() + 
   scale_fill_manual(values=year_greens, 'Year') +
