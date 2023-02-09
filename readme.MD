@@ -12,3 +12,6 @@ Tile plot of major cities of the world, classified into Alpha Beta Gamma bsaed o
 Simple chart of number of nights in each country, grouped by regions
 
 ![Region Nights](Plots/Region_Chart.jpeg)
+
+Some more detailed time series of where I've spent time in select cities:
+![Repeats](Plots/Repeats2.jpeg)
