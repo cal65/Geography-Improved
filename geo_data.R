@@ -129,3 +129,38 @@ latlon_barplot <- function(df, col, cutoff, save=T){
   }
 }
 
+get_location_on_date <- function(df, date_str, date_col='End.Date', location_col='Location'){
+  ###
+  # input, date_str should be "02-04" or "11-17"
+  # date_col should be End.Date
+  ###
+  years <- range(year(df[,get(date_col)]))
+  year_start <- years[1]
+  year_end <- years[2]
+  dates <- rep(0, year_end - year_start + 1)
+  locations <- rep(0, year_end - year_start + 1)
+  for (year in year_start:year_end){
+    i <- year - year_start + 1
+    dates[i] <- as.Date(paste0(year, '-', date_str))
+    date_index <- which.max(df[,get(date_col)] >= dates[i])
+    if (date_index == 1 & year > year_start){ # this happens when date is in future
+      locations[i] <- NA
+    } else{
+      locations[i] <- df[date_index][,get(location_col)]
+    }
+  }
+  return (locations)
+  
+}
+
+get_locations_year <- function(df) {
+  dates <- seq.Date(from = as.Date('2020-01-01'), to = as.Date('2020-12-31'), by = '1 day')
+  date_strs <- sapply(dates, function(x) format(x, '%m-%d'))
+  date_locations <- rep(0, length(date_strs))
+  for (i in 1:length(date_strs)){
+    date <- date_strs[i]
+    date_locations[i] <- get_location_on_date(df, date)
+  }
+  return (date_locations)
+}
+
