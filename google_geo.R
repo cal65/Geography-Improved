@@ -113,7 +113,7 @@ ggplot() + m1 + m2 + geom_point(data=total_nights[last_year>2007],
                            color=first_year,
                            text=paste(Location, Country, sep='\n')), 
                            shape=21, alpha=0.8) +
-  scale_size_continuous('Total Nights (sq rt)', range = c(0.02, 2),
+  scale_size_continuous('Total Nights (sq rt)', range = c(0.01, 2),
                         breaks = c(3, 10, 30)) +
   scale_fill_manual('Year First', values=bp) +
   scale_color_manual('Year First', values=bp) +

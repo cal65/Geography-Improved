@@ -137,11 +137,14 @@ get_location_on_date <- function(df, date_str, date_col='End.Date', location_col
   years <- range(year(df[,get(date_col)]))
   year_start <- years[1]
   year_end <- years[2]
-  dates <- rep(0, year_end - year_start + 1)
+  dates <- rep(as.Date('2020-01-01'), year_end - year_start + 1)
   locations <- rep(0, year_end - year_start + 1)
   for (year in year_start:year_end){
     i <- year - year_start + 1
     dates[i] <- as.Date(paste0(year, '-', date_str))
+    if (i == 20){
+      print(dates[i])
+    }
     date_index <- which.max(df[,get(date_col)] >= dates[i])
     if (date_index == 1 & year > year_start){ # this happens when date is in future
       locations[i] <- NA
@@ -149,18 +152,33 @@ get_location_on_date <- function(df, date_str, date_col='End.Date', location_col
       locations[i] <- df[date_index][,get(location_col)]
     }
   }
+  locations <- locations[!is.na(locations)]
   return (locations)
   
 }
 
 get_locations_year <- function(df) {
-  dates <- seq.Date(from = as.Date('2020-01-01'), to = as.Date('2020-12-31'), by = '1 day')
+  dates <- seq.Date(from = as.Date('2021-01-01'), to = as.Date('2021-12-31'), by = '1 day')
   date_strs <- sapply(dates, function(x) format(x, '%m-%d'))
-  date_locations <- rep(0, length(date_strs))
+  date_locations <- vector('list')
   for (i in 1:length(date_strs)){
     date <- date_strs[i]
-    date_locations[i] <- get_location_on_date(df, date)
+    date_locations[[date]] <- get_location_on_date(df, date)
   }
   return (date_locations)
+}
+
+Mode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+plot_locations_year <- function(df){
+  date_locations <- get_locations_year(df)
+  num_locations <- sapply(date_locations, function(x) length(unique(x)))
+  geo_df <- data.frame(date_raw = names(date_locations), n = num_locations)
+  geo_df$date <- as.Date(paste0('2021', '-', geo_df$date_raw))
+  geo_df$location <- sapply(date_locations, function(x) Mode(x))
+  return (geo_df)
 }
 
