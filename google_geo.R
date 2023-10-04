@@ -136,7 +136,7 @@ ggplot(country_count) + geom_step(aes(x=first_date, y=count)) +
   geom_text(aes(x=first_date, y=count, label=Country, color=continent), hjust=0, vjust=1.2) +
   ggtitle('New Country Progression') + theme(legend.position = 'bottom',
   plot.title = element_text(hjust=0.5, size=12), panel.background = element_blank()) +
-  xlab('') + expand_limits(x=as.Date('2021-09-01'))
+  xlab('') + expand_limits(x=as.Date('2023-05-01'))
 ggsave('Country_Count.jpeg', width=9, height=6, dpi=300)
 
 
@@ -156,13 +156,14 @@ alpha$City.Name <- gsub('^ ', '', alpha$City.Name)
 simp_city_df <- data.frame(city = c('Kowloon', 'Aberdeen', 'Brooklyn', 'Newton', 'Cambridge', 
                                     'Santa Monica', 'Washington', 'Arlington', 'Encinitas', 
                                     'Huntington Beach', 'Manhattan', 'Indian Rocks Beach', 'Sandy Springs', 'Ontario',
-                                    'Decatur', 'Jersey City', 'Bloomington', 'Eden Prairie'),
+                                    'Decatur', 'Jersey City', 'Bloomington', 'Eden Prairie',
+                                    'Sunnyvale'),
                            simp_city = c('Hong Kong', 'Hong Kong', 'New York', 'Boston', 'Boston', 
                                          'Los Angeles', 'Washington', 'Washington', 'San Diego', 
                                          'Los Angeles', 'New York', 'Tampa', 'Atlanta', 
                                          'Los Angeles', 
                                          'Atlanta', 'New York', 'Minneapolis',
-                                         'Minneapolis'))
+                                         'Minneapolis', 'San Jose'))
 geo_simp$Location <- mapvalues(geo_simp$Location, 
                                from=simp_city_df$city, to=simp_city_df$simp_city)
 
@@ -280,9 +281,9 @@ geo_simp$Country <- mapvalues(geo_simp$Country,
                                to = c('UK', 'UK', 'UK', 'China'))
  
 total_nights_simp <- geo_simp[, .(total = sum(Nights)), by = c('Location', 'Country')]
-added_df2 <- data.frame(Location= c('Tianjin', 'Miami', 'Philadelphia', 'Bratislava'),
-                       Country= c('China', 'USA', 'USA', 'Slovakia'), 
-                       total=c(1, 1, 2, 1))
+added_df2 <- data.frame(Location= c('Tianjin', 'Miami', 'Philadelphia', 'Bratislava', "Lisbon"),
+                       Country= c('China', 'USA', 'USA', 'Slovakia', "Portugal"), 
+                       total=c(1, 1, 2, 1, 2))
 total_nights_simp <- rbind.fill(total_nights_simp, added_df2)
 
 alpha$City.Name <- mapvalues(alpha$City.Name, from = c('Washington, D.C.', 'San Jose (CR)'),
