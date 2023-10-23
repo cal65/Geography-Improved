@@ -27,6 +27,9 @@ geo_all$Location <- mapvalues(geo_all$Location, from='New York City', to='New Yo
 geo_all$Location <- mapvalues(geo_all$Location, from='Airplane', to='Red Eye')
 geo_all$Location <- mapvalues(geo_all$Location, from='Aberdeen', to='Hong Kong')
 
+# Map to location alpha city and country
+# UK
+
 geo_all$Location_raw <- geo_all$Location
 
 squash <- T
@@ -167,7 +170,7 @@ simp_city_df <- data.frame(city = c('Kowloon', 'Aberdeen', 'Brooklyn', 'Newton',
 geo_simp$Location <- mapvalues(geo_simp$Location, 
                                from=simp_city_df$city, to=simp_city_df$simp_city)
 
-geo_years <- geo_simp[, .(Nights = sum(Nights, na.rm=T)), by=c('Location', 'Country', 'Year')]
+geo_years <- geo_simp[!is.na(Year), .(Nights = sum(Nights, na.rm=T)), by=c('Location', 'Country', 'Year')]
 #manual add cause I spent a day in Miami
 added_df <- data.frame(Location= c('Tianjin', 'Miami', 'Philadelphia', 'Philadelphia', 
                                    'Cincinnati', 'Seoul', 'Bratislava', 'Los Angeles',
