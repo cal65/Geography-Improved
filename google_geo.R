@@ -488,18 +488,25 @@ ggplot(total_nights) +
             aes(x=Elevation, y=lat, label=Location, color=Country)) +
   scale_color_brewer(palette='Set1') +
   theme_dark()
-ggplot(total_nights) +
-   geom_point(aes(x=lon, y=lat, size=Elevation, color=log(total)), alpha=0.4) + 
-  scale_color_gradient(low='blue', high='red') +
-  theme_clean()
 
 ggplot(total_nights) +
   geom_point(aes(x=lon, y=lat, size=log(total), color=Elevation), alpha=0.4) + 
-  scale_color_gradient(low='blue', high='red') +
+  scale_color_gradient2(low='purple', mid='green', high='red', 
+                        midpoint = max(total_nights$Elevation)/2) +
   scale_size_continuous(breaks = c(1, 3, 5, 7), 
                         labels=round(exp(c(1, 3, 5, 7))),
                         'Total Nights') +
   theme_clean() +
   ggtitle('Elevation Map') +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(hjust = 0.5),
+        axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
 ggsave('Plots/Elevation_Map.jpeg', width=12, height=9)
+
+
+### Arc map
+geo_coords <- merge(geo_all, loc_refs[, c('Location', 'Country', 'State', 'lon', 'lat')], 
+                      by = c('Location', 'Country', 'State'), all.x=T)
+arcMap(geo_coords[Year==2023][order(Start.Date)], year = 2023)
+ggsave('Plots/arcs_2023.jpeg', width=10, height=9, dpi=320)
