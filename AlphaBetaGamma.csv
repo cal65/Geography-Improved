@@ -153,18 +153,19 @@ Cincinnati,USA,Gamma,North America
 Guadalajara,Mexico,Gamma,North America
 Leeds,UK,Gamma,Europe
 Baku,Azerbaijan,Gamma,Asia
-Tallinn,,Gamma,Europe
-Vilnius,,Gamma,Europe
+Tallinn,Estonia,Gamma,Europe
+Vilnius,Lithuania,Gamma,Europe
 Colombo,Sri Lanka,Gamma,Asia
 Raleigh,USA,Gamma,North America
 Ankara,Turkey,Gamma,Asia
 Belfast,UK,Gamma,Europe
 Milwaukee,USA,Gamma,North America
-Muscat,,Gamma,Asia
+Muscat,Oman,Gamma,Asia
 Bilbao,Spain,Gamma,Europe
 Taiyuan,China,Gamma,Asia
 Ljubljana,Slovenia,Gamma,Europe
 Kunming,China,Gamma,Asia
+Tbilisi,Georgia,Gamma,Asia
 Nantes,France,Gamma -,Europe
 Tianjin,China,Gamma -,Asia
 Accra,Ghana,Gamma -,Africa
@@ -175,7 +176,7 @@ Columbus,USA,Gamma -,North America
 Utrecht,Netherlands,Gamma -,Europe
 Orlando,USA,Gamma -,North America
 Ahmedabad,India,Gamma -,Asia
-Asuncion,,Gamma -,South America
+Asuncion,Paraguay,Gamma -,South America
 Kansas City,USA,Gamma -,North America
 Seville,Spain,Gamma -,Europe
 Turin,Italy,Gamma -,Europe
@@ -204,3 +205,7 @@ Kaohsiung,Taiwan,Gamma -,Asia
 Ningbo,China,Gamma -,Asia
 Yerevan,Armenia,Gamma -,Asia
 Indianapolis,USA,Gamma -,North America
+Sarajevo,Bosnia and Herzegovina,Gamma -,Europe
+Addis Ababa,Ethiopia,Gamma -,Africa
+Malaga,Spain,Gamma -,Europe
+Belo Horizonte,Brazil,Gamma -,South America

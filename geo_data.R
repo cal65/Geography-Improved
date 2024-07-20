@@ -116,7 +116,7 @@ latlon_barplot <- function(df, col, cutoff, save=T){
     scale_y_sqrt("Total Number of Days (sqrt)",
                  breaks = scale_breaks,
                  labels = scale_breaks) +
-    scale_fill_gradient(low='dark red', high='dark blue', guide=F) +
+    scale_fill_gradient(low='dark red', high='dark blue', guide="none") +
     theme_few() + xlab(col) +
     ggtitle(paste0("Distribution by ",  col)) +
     theme(plot.title = element_text(hjust=0.5), 
