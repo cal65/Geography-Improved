@@ -40,6 +40,8 @@ region_gdp_mapped$weight <- region_gdp_mapped$total / sum(region_gdp_mapped$tota
 region_gdp_mapped$type <- 'Personal'
 gdp_comparison <- rbind(gdp_pop_2022, region_gdp_mapped, fill=T)
 
+select_countries <- c('United States', 'China', 'Colombia')
+gdp_comparison[Entity %in% select_countries & type  == 'Global']
 ggplot(gdp_comparison) + 
   geom_density(aes(x=GDPpc, weight = weight, fill=type), alpha=0.7) +
   ggtitle("Weighted GDP/capita - Travels vs World") +
