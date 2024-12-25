@@ -1,6 +1,8 @@
 require(data.table)
 require(geosphere)
 require(ggmap)
+library(stringi)
+
 move_origin <- function(df, long='long', lat='lat', orig_x, orig_y, height){
   lat_range <- range(df[[lat]], na.rm=T)
   long_range <- range(df[[long]], na.rm=T)
@@ -108,11 +110,37 @@ unesco[indices, c('name_en', 'category_short', 'states_name_en')]
 
 joined_df <- st_join(spatial_unesco_buffer, total_nights_sdf_km, join = st_intersects)
 setDT(joined_df)
-my_df <- unique(joined_df[!is.na(lon), c('name_en', 'category_short', 
-                                         'states_name_en', 'Location', 'total')])
+my_df <- unique(joined_df[!is.na(lon), c('name_en', 'category', 'category_short', 
+                                         'states_name_en', 'Location', 'UN.Sub.region', 'total')])
+ggplot(my_df) + geom_tile(aes(x=1, y=name_en, fill=category), color='orange') +
+  facet_wrap(UN.Sub.region ~ ., nrow=5, scales='free') +
+  ggtitle('UNESCO World Heritage Sites')
 
+my_df2 <- fread('Global/unesco_me.csv')
+my_df2 <- my_df2[my_df2$Visited=='T']
+my_df2$name_formatted <- sapply(my_df2$name_en, FUN=function(x) paste(stri_wrap(x, width=20), collapse='\n'))
+my_df2 <- my_df2[,.SD[1], name_en]
+region_order <- names(sort(table(my_df2$UN.Sub.region), decreasing = T))
 
+my_df2$UN.Sub.region <- factor(my_df2$UN.Sub.region, levels =region_order)
+my_df2$region_order <- mapvalues(my_df2$UN.Sub.region, from = region_order,
+                                 to = c(1,2,1,2,1,2,2,2,1,1,1))
+g <- ggplot(my_df2) + geom_tile(aes(x='Visited', y=name_en, fill=category), color='orange') +
+  geom_text(aes(x='Visited', y=name_en, label=name_en)) +
+  facet_wrap(UN.Sub.region ~ ., nrow=4, scales='free', ) + 
+  xlab('') +  scale_fill_brewer(palette='Greens') +
+  theme(axis.text.y=element_blank(),
+        panel.grid.major.y = element_blank(),
+        plot.title = element_text(hjust=0.5)) + 
+  ggtitle('UNESCO World Heritage Sites')
 
+gt = ggplot_gtable(ggplot_build(g))
+gt$heights[18] <- gt$heights[18]  * .6
+gt$heights[23] <- gt$heights[23]  * .3
+grid.draw(gt)
+ggsave('Plots/Unesco_tile.jpeg', width=9, height=15, dpi=300)
+
+# climate
 climate <- read.csv('external/other_climate_2007_koppen_geiger.csv')
 climate$geometry <- st_as_sfc(climate$geometry)
 climate <- st_as_sf(climate)
@@ -166,7 +194,7 @@ getWorldMap <- function(limits_x=c(-150, 170), limits_y = c(-15,85)){
 }
 
 arcMap <- function(df, lon_col='lon', lat_col='lat', zoom=2,
-                   year=2023) {
+                   year=2023, name='Cal') {
   l_cols <- c(lon_col, lat_col)
   G_coords<-df[(!is.na(get(lon_col)))]
   n <- nrow(G_coords)-1
@@ -192,10 +220,16 @@ arcMap <- function(df, lon_col='lon', lat_col='lat', zoom=2,
   lat_mean = mean(range(G_coords[,get(lat_col)]))
   lon_mean = mean(range(G_coords[,get(lon_col)]))
   worldmap = get_map(location = c(lon_mean, lat_mean), maptype="terrain", zoom=zoom)
+  if (length(unique(df$Country)) > 9){
+    palette = 'Set3'
+  }
+  else{
+    palette <- 'Set1'
+  }
   sweetmap <- ggmap(worldmap) + 
     geom_point(data=G_coords, aes(x=lon, y=get(lat_col), size=sqrt(Nights), color=Country), 
                alpha=0.5) +
-    scale_color_brewer(palette='Set1')
+    scale_color_brewer(palette=palette)
   
   line_palette <- colorRampPalette(c('black', 'darkorange1'), alpha = TRUE)(n)
   
@@ -203,10 +237,10 @@ arcMap <- function(df, lon_col='lon', lat_col='lat', zoom=2,
     sweetmap <-sweetmap + geom_path(data=lines[[i]], aes(x=lon, y=lat), 
                                     linewidth=.4, color=line_palette[i], alpha=0.5)
   }
-  sweetmap <- sweetmap + ggtitle(paste0("Cal Travels -", as.character(year))) +
+  sweetmap <- sweetmap + ggtitle(paste0(name, " Travels - ", as.character(year))) +
     theme(plot.title = element_text(hjust=0.5))
   return(sweetmap)
 }
 
-arcMap(geo_coords[Year==2023][order(Start.Date)], zoom=3)
-x
+y <- 2024
+arcMap(geo_coords[Year==y][order(Start.Date)], zoom=3)

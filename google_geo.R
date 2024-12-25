@@ -114,10 +114,11 @@ ggplot() + m1 + m2 + geom_point(data=total_nights[last_year>2007],
                            aes(x=lon, y=lat, size=sqrt(total), 
                            fill=first_year,
                            color=first_year,
+                           label=first_year,
                            text=paste(Location, Country, sep='\n')), 
                            shape=21, alpha=0.8) +
-  scale_size_continuous('Total Nights (sq rt)', range = c(0.01, 2),
-                        breaks = c(3, 10, 30)) +
+  scale_size_continuous('Total Nights (sq rt)', range = c(0.005, 2.5),
+                        breaks = c(1, 3, 10, 30)) +
   scale_fill_manual('Year First', values=bp) +
   scale_color_manual('Year First', values=bp) +
   ggtitle('Geography of Cal') + 
@@ -126,7 +127,7 @@ ggplot() + m1 + m2 + geom_point(data=total_nights[last_year>2007],
 ggsave('Plots/Geography_Cal6.jpeg', width=13.5, height=8, dpi=750)
 
 #plotly
-map_html <- ggplotly(tooltip = c('text', 'first_year'))
+map_html <- ggplotly(tooltip = c('color', 'text'))
 saveWidget(as_widget(map_html), "Geography_Cal.html")
 
 #lats and lons
@@ -528,5 +529,6 @@ ggsave('Plots/Elevation_Map.jpeg', width=12, height=9)
 ### Arc map
 geo_coords <- merge(geo_all, loc_refs[, c('Location', 'Country', 'State', 'lon', 'lat')], 
                       by = c('Location', 'Country', 'State'), all.x=T)
-arcMap(geo_coords[Year==2023][order(Start.Date)], year = 2023)
-ggsave('Plots/arcs_2023.jpeg', width=10, height=9, dpi=320)
+y <- 2024
+arcMap(geo_coords[order(Start.Date)][Year==y], year = y)
+ggsave(paste0('Plots/arcs_', y, '.jpeg'), width=10, height=9, dpi=320)
